@@ -1,4 +1,4 @@
-# tr-pdf-to-sb-csv-converter
+# Trade Republic PDF to Snowball Analytics CSV
 
 Small script to convert the Trade Republic Securities PDF to Snowball Analytics CSV
 
