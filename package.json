@@ -1,0 +1,14 @@
+{
+  "name": "tr-pdf-to-sb-csv-converter",
+  "version": "1.0.0",
+  "description": "Converts Trade Republic Securities PDF to Snowball Analytics CSV",
+  "scripts": {
+    "convert": "ts-node src/index.ts"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "pdf-parse": "^1.1.1",
+    "ts-node": "^10.9.2",
+    "@types/pdf-parse": "^1.1.5"
+  }
+}
