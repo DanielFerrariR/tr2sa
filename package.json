@@ -1,14 +1,21 @@
 {
-  "name": "tr-pdf-to-sb-csv-converter",
+  "name": "jstr",
   "version": "1.0.0",
-  "description": "Converts Trade Republic Securities PDF to Snowball Analytics CSV",
+  "description": "Node API to communicate with Trade Republic",
   "scripts": {
-    "convert": "ts-node src/index.ts"
+    "login": "ts-node src/index.ts"
   },
   "license": "ISC",
   "devDependencies": {
-    "pdf-parse": "^1.1.1",
-    "ts-node": "^10.9.2",
-    "@types/pdf-parse": "^1.1.5"
+    "@types/readline-sync": "^1.4.8",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "axios": "^1.10.0",
+    "axios-cookiejar-support": "^6.0.2",
+    "readline-sync": "^1.4.10",
+    "tough-cookie": "^5.1.2",
+    "ws": "^8.18.2"
   }
 }

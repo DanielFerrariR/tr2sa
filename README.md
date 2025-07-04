@@ -1,10 +1,10 @@
-# Trade Republic PDF to Snowball Analytics CSV
+# jstr: Use TradeRepublic in terminal
 
-Small script to convert the Trade Republic Securities PDF to Snowball Analytics CSV
+This is a library for the private API of the Trade Republic online brokerage. It is not affiliated with Trade Republic Bank GmbH.
 
 ## Steps
 
-1 - Install Node 20.10.0
+1 - Install Node 20.19.0
 
 2 - npm install
 
