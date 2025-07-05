@@ -125,16 +125,16 @@ export class TradeRepublicAPI {
         return;
       }
 
-      const [subscriptionId, command, jsonString] = message.split(' ');
+      let jsonPayload: any;
 
-      let jsonPayload;
+      const [subscriptionId, command] = message.split(' ', 2);
+      let jsonMatch = message.match(/\{.*\}/s);
 
       try {
-        // jsonString might be undefined if is a keep-alive message
-        jsonPayload = jsonString && JSON.parse(jsonString);
+        // jsonMatch might be undefined if command is keep-alive
+        if (jsonMatch) jsonPayload = JSON.parse(jsonMatch[0]);
       } catch (error) {
-        console.error('Failed to parse JSON payload:', error);
-        return;
+        console.warn('Failed to parse JSON payload:', error);
       }
 
       // Handle transaction messages
@@ -191,8 +191,10 @@ export class TradeRepublicAPI {
 
     // To always include the token if the message has a format like: sub 1 {"type":"availableCash"}
     try {
-      const [command, subscriptionId, jsonString] = message.split(' ');
-      const jsonPayload = JSON.parse(jsonString);
+      const [command, subscriptionId] = message.split(' ', 2);
+      let jsonMatch = message.match(/\{.*\}/s);
+      if (!jsonMatch) throw new Error('No JSON payload found in message');
+      const jsonPayload = JSON.parse(jsonMatch![0]);
       jsonPayload.token = this._sessionToken;
       message = `${command} ${subscriptionId} ${JSON.stringify(jsonPayload)}`;
     } catch (error) {
@@ -201,6 +203,8 @@ export class TradeRepublicAPI {
         error,
       );
     }
+
+    console.log('Sending message:', message);
 
     this._webSocket?.send(message);
   }

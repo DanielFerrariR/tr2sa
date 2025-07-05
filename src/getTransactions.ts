@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { TradeRepublicAPI } from './api';
+import { RECEIVED_COMMAND_TYPES, TradeRepublicAPI } from './api';
 import {
   Transaction,
   TransactionDetailsResponse,
@@ -40,12 +40,25 @@ export async function getTransactions(): Promise<Transaction[]> {
         console.log('WebSocket connection opened.');
       },
       onConnected: () => {
-        console.log('Received "connected" message from server.');
-        console.log('\n--- WebSocket Ready ---');
-        console.log('Starting automatic fetching of timeline transactions...');
+        try {
+          console.log('Received "connected" message from server.');
+          console.log('\n--- WebSocket Ready ---');
+          console.log(
+            'Starting automatic fetching of timeline transactions...',
+          );
 
-        TradeRepublicAPI.getInstance().sendTransactionsMessage();
-        console.log('Sent initial timelineTransactions request.');
+          TradeRepublicAPI.getInstance().sendTransactionsMessage();
+          console.log('Sent initial timelineTransactions request.');
+        } catch (error) {
+          console.error('Error during initial connection:', error);
+          reject(error);
+        }
+      },
+      onMessage: (message, { command }) => {
+        // Ignore keep-alive messages
+        if (command === RECEIVED_COMMAND_TYPES.KEEP_ALIVE) return;
+        // Handle any other messages that are not specifically transaction-related
+        console.log(`Received message: ${message}`);
       },
       onTransactionMessage: (message, { jsonPayload }) => {
         try {
@@ -55,7 +68,6 @@ export async function getTransactions(): Promise<Transaction[]> {
           );
 
           const afterCursor = jsonPayload.cursors.after;
-
           if (afterCursor) {
             TradeRepublicAPI.getInstance().sendTransactionsMessage(afterCursor);
             console.log(
@@ -63,19 +75,22 @@ export async function getTransactions(): Promise<Transaction[]> {
             );
           } else {
             console.log('All initial timeline transactions fetched.');
-            // Now, fetch details for each transaction
-            if (allItems.length > 0) {
-              console.log('Starting to fetch details for each transaction...');
-              allItems.forEach((transaction) => {
-                transactionsToFetchDetailsFor.add(transaction.id);
-                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
-                  transaction.id,
-                );
-              });
-            } else {
-              // If no transactions, proceed to save and resolve
+
+            if (allItems.length === 0) {
+              console.log(
+                'No transactions found. Exiting without fetching details.',
+              );
               saveAndResolve(allItems);
+              return;
             }
+
+            console.log('Starting to fetch details for each transaction...');
+            allItems.forEach((transaction) => {
+              transactionsToFetchDetailsFor.add(transaction.id);
+              TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
+                transaction.id,
+              );
+            });
           }
         } catch (error) {
           console.error('Error processing transaction message:', message);
