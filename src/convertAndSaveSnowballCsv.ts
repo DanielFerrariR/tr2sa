@@ -1,23 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { Transaction } from '../types/transactions';
-import { TRANSATION_EVENT_TYPE } from './constants/transactions';
+import { Transaction } from '../types';
+import {
+  INVESTMENT_TRANSACTIONS,
+  TRADE_REPUBLIC_TRANSACTION_FEE,
+  TRANSACTIONS_WITH_FEE,
+} from './constants';
+import { formatDate } from './utils';
 
-const formatDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+const OUTPUT_DIR = 'build';
+const FILENAME = 'snowball_transactions.csv';
 
-const transactionsWithFee = [TRANSATION_EVENT_TYPE.TRADING_TRADE_EXECUTED];
-
-const tradeRepublicFee = 1.0;
-
-export const convertAndSaveSnowballCsv = (
-  data: Transaction[],
-  filename = 'snowball_transactions.csv',
-) => {
+export const convertAndSaveSnowballCsv = (data: Transaction[]) => {
   if (!data?.length) {
     console.warn(
       'No data provided to convert to CSV. No file will be created.',
@@ -41,14 +35,17 @@ export const convertAndSaveSnowballCsv = (
   csvRows.push(headers.join(','));
 
   data.forEach((item) => {
+    // For now we are only interested in investment transactions
+    if (!INVESTMENT_TRANSACTIONS.includes(item.eventType)) return;
+
     const event = item.amount.value < 0 ? 'Buy' : 'Sell';
     const date = formatDate(new Date(item.timestamp));
     const symbol = item.icon.split('/')[1];
     const price = item.amount.value;
     const quantity = '';
     const currency = item.amount.currency;
-    const feeTax = transactionsWithFee.includes(item.eventType)
-      ? tradeRepublicFee
+    const feeTax = TRANSACTIONS_WITH_FEE.includes(item.eventType)
+      ? TRADE_REPUBLIC_TRANSACTION_FEE
       : '';
     const exchange = '';
     const feeCurrenty = '';
@@ -65,19 +62,19 @@ export const convertAndSaveSnowballCsv = (
       feeCurrenty,
     ];
 
-    csvRows.push(row.map((field) => `"${String(field)}"`).join(','));
+    csvRows.push(row.map((field) => `"${field}"`).join(','));
   });
 
   const csvString = csvRows.join('\n');
-  const filePath = path.join(process.cwd(), `build/${filename}`);
+  const filePath = path.join(process.cwd(), `${OUTPUT_DIR}/${FILENAME}`);
 
-  if (!fs.existsSync('build')) fs.mkdirSync('build');
+  if (!fs.existsSync('build')) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   fs.writeFile(filePath, csvString, (error) => {
     if (error) {
-      console.error(`Error saving CSV file "${filename}".`, error);
+      console.error(`Error saving CSV file "${FILENAME}".`, error);
     } else {
-      console.log(`CSV file "${filename}" successfully saved to ${filePath}.`);
+      console.log(`CSV file "${FILENAME}" successfully saved to ${filePath}.`);
     }
   });
 };

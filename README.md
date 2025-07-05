@@ -8,4 +8,6 @@ This is a library for the private API of the Trade Republic online brokerage. It
 
 2 - npm install
 
+2 - Create a .env file (check .env.example)
+
 3 - npm run cli

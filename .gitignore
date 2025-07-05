@@ -1,3 +1,4 @@
 node_modules
-build/all_timeline_transactions.json
-build/snowball_transactions.csv
+build
+build
+.env

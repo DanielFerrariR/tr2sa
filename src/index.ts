@@ -1,7 +1,8 @@
-import { login } from './login';
-import { connectToTRSocket } from './connectToTRSocket';
+require('dotenv').config(); // Needs to be at the top to load environment variables
 import fs from 'fs';
 import inquirer from 'inquirer';
+import { login } from './login';
+import { connectToWebSocket } from './connectToWebSocket';
 
 import { convertAndSaveSnowballCsv } from './convertAndSaveSnowballCsv';
 import { getListOfTransactions } from './getListOfTransactions';
@@ -14,8 +15,8 @@ async function main() {
       message: 'What would you like to do?',
       choices: [
         {
-          name: 'Connect to TR Socket (interact via prompt)',
-          value: 'connectToTRSocket',
+          name: 'Connect to WebSocket (interact via prompt)',
+          value: 'connectToWebSocket',
         },
         {
           name: 'Download JSON and convert it to Snowball CSV',
@@ -29,23 +30,17 @@ async function main() {
     },
   ]);
 
-  if (action === 'connectToTRSocket') {
-    const trSessionToken = await login();
-    if (!trSessionToken) {
-      console.error('Login failed. Exiting.');
-      return;
-    }
-    connectToTRSocket(trSessionToken);
+  if (action === 'connectToWebSocket') {
+    const wasLoginSuccessful = await login();
+    if (!wasLoginSuccessful) return;
+    connectToWebSocket();
     return;
   }
 
   if (action === 'downloadJSONAndConvertToSnowballCsv') {
-    const trSessionToken = await login();
-    if (!trSessionToken) {
-      console.error('Login failed. Exiting.');
-      return;
-    }
-    const transactions = await getListOfTransactions(trSessionToken);
+    const wasLoginSuccessful = await login();
+    if (!wasLoginSuccessful) return;
+    const transactions = await getListOfTransactions();
     convertAndSaveSnowballCsv(transactions);
     console.log('Conversion to Snowball CSV completed.');
     return;
@@ -69,11 +64,6 @@ async function main() {
       console.log('Conversion to Snowball CSV completed.');
     } catch (error) {
       console.error('Error converting to Snowball CSV:', error);
-      if (error instanceof SyntaxError) {
-        console.error(
-          'It seems like all_timeline_transactions.json might be malformed JSON.',
-        );
-      }
     }
   }
 }
