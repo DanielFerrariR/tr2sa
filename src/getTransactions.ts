@@ -1,12 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { RECEIVED_COMMAND_TYPES, TradeRepublicAPI } from './api';
-import {
-  Transaction,
-  TransactionDetailsResponse,
-  TransactionResponse,
-} from '../types';
-import { TRANSACTION_WITHOUT_DETAILS } from './constants';
+import { Transaction } from '../types';
 
 const OUTPUT_DIR = 'build';
 const FILENAME = 'all_timeline_transactions.json';
@@ -88,16 +83,12 @@ export async function getTransactions(): Promise<Transaction[]> {
             }
 
             console.log('Starting to fetch details for each transaction...');
-            allItems
-              .filter((item) =>
-                TRANSACTION_WITHOUT_DETAILS.includes(item.eventType),
-              )
-              .forEach((transaction) => {
-                transactionsToFetchDetailsFor.add(transaction.id);
-                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
-                  transaction.id,
-                );
-              });
+            allItems.forEach((transaction) => {
+              transactionsToFetchDetailsFor.add(transaction.id);
+              TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
+                transaction.id,
+              );
+            });
           }
         } catch (error) {
           console.error('Error processing transaction message:', message);
