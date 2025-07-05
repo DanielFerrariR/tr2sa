@@ -140,8 +140,7 @@ export class TradeRepublicAPI {
       // Handle transaction messages
       if (
         this._subscriptions[Number(subscriptionId)] ===
-          SUBSCRIPTION_TYPES.TRANSACTIONS &&
-        command !== RECEIVED_COMMAND_TYPES.KEEP_ALIVE
+        SUBSCRIPTION_TYPES.TRANSACTIONS
       ) {
         onTransactionMessage?.(message, {
           subscriptionId,
@@ -154,8 +153,7 @@ export class TradeRepublicAPI {
       // Handle transaction details messages
       if (
         this._subscriptions[Number(subscriptionId)] ===
-          SUBSCRIPTION_TYPES.TRANSACTION_DETAILS &&
-        command !== RECEIVED_COMMAND_TYPES.KEEP_ALIVE
+        SUBSCRIPTION_TYPES.TRANSACTION_DETAILS
       ) {
         onTransactionDetailsMessage?.(message, {
           subscriptionId,

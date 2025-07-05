@@ -6,6 +6,7 @@ import {
   TransactionDetailsResponse,
   TransactionResponse,
 } from '../types';
+import { TRANSACTION_WITHOUT_DETAILS } from './constants';
 
 const OUTPUT_DIR = 'build';
 const FILENAME = 'all_timeline_transactions.json';
@@ -55,12 +56,14 @@ export async function getTransactions(): Promise<Transaction[]> {
         }
       },
       onMessage: (message, { command }) => {
-        // Ignore keep-alive messages
         if (command === RECEIVED_COMMAND_TYPES.KEEP_ALIVE) return;
-        // Handle any other messages that are not specifically transaction-related
         console.log(`Received message: ${message}`);
       },
-      onTransactionMessage: (message, { jsonPayload }) => {
+      onTransactionMessage: (message, { command, jsonPayload }) => {
+        if (!jsonPayload || command === RECEIVED_COMMAND_TYPES.KEEP_ALIVE) {
+          return;
+        }
+
         try {
           allItems = allItems.concat(jsonPayload.items);
           console.log(
@@ -85,19 +88,27 @@ export async function getTransactions(): Promise<Transaction[]> {
             }
 
             console.log('Starting to fetch details for each transaction...');
-            allItems.forEach((transaction) => {
-              transactionsToFetchDetailsFor.add(transaction.id);
-              TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
-                transaction.id,
-              );
-            });
+            allItems
+              .filter((item) =>
+                TRANSACTION_WITHOUT_DETAILS.includes(item.eventType),
+              )
+              .forEach((transaction) => {
+                transactionsToFetchDetailsFor.add(transaction.id);
+                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
+                  transaction.id,
+                );
+              });
           }
         } catch (error) {
           console.error('Error processing transaction message:', message);
           reject(error);
         }
       },
-      onTransactionDetailsMessage: (message, { jsonPayload }) => {
+      onTransactionDetailsMessage: (message, { command, jsonPayload }) => {
+        if (!jsonPayload || command === RECEIVED_COMMAND_TYPES.KEEP_ALIVE) {
+          return;
+        }
+
         try {
           const transactionId = jsonPayload.id;
           const transactionIndex = allItems.findIndex(
@@ -111,6 +122,8 @@ export async function getTransactions(): Promise<Transaction[]> {
             );
             fetchedDetailsCount++;
             transactionsToFetchDetailsFor.delete(transactionId);
+
+            console.log(transactionsToFetchDetailsFor);
 
             if (
               transactionsToFetchDetailsFor.size === 0 &&

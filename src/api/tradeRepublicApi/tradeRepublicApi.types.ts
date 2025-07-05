@@ -17,7 +17,7 @@ export type VerifySmsPinPayload = {
 type SplitMessage<PayloadType = any> = {
   subscriptionId: string;
   command: string;
-  jsonPayload: PayloadType;
+  jsonPayload?: PayloadType;
 };
 
 export type ConnectOptions = {
