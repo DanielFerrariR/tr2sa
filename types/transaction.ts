@@ -104,15 +104,15 @@ interface SupportSection {
   type: 'table';
 }
 
-type TransactionDetailsSection =
+type TransactionDetails =
   | SectionHeader
   | OverviewSection
   | DocumentsSection
   | SupportSection;
 
-export interface TransactionDetails {
+export interface TransactionDetailsResponse {
   id: string;
-  sections: TransactionDetailsSection[];
+  sections: TransactionDetails[];
 }
 
 export interface Transaction {

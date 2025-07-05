@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { TradeRepublicAPI } from './api';
-import { Transaction, TransactionResponse } from '../types';
+import {
+  Transaction,
+  TransactionDetailsResponse,
+  TransactionResponse,
+} from '../types';
 
 const OUTPUT_DIR = 'build';
 const FILENAME = 'all_timeline_transactions.json';
@@ -9,8 +13,27 @@ const FILENAME = 'all_timeline_transactions.json';
 export async function getTransactions(): Promise<Transaction[]> {
   return new Promise((resolve, reject) => {
     let allItems: Transaction[] = [];
-    let currentSubscriptionId = 1;
-    let isFetchingTransactions = false;
+    let transactionsToFetchDetailsFor: Set<string> = new Set();
+    let fetchedDetailsCount = 0;
+
+    const saveAndResolve = (data: Transaction[]) => {
+      const filePath = path.join(process.cwd(), `${OUTPUT_DIR}/${FILENAME}`);
+
+      if (!fs.existsSync(OUTPUT_DIR))
+        fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+
+      fs.writeFile(filePath, JSON.stringify(data, null, 2), (error) => {
+        if (error) {
+          console.error(`Error saving JSON file "${FILENAME}".`, error);
+        } else {
+          console.log(
+            `JSON file "${FILENAME}" successfully saved to ${filePath}.`,
+          );
+        }
+        TradeRepublicAPI.getInstance().disconnect();
+        resolve(data);
+      });
+    };
 
     TradeRepublicAPI.getInstance().connect({
       onOpen: () => {
@@ -21,93 +44,83 @@ export async function getTransactions(): Promise<Transaction[]> {
         console.log('\n--- WebSocket Ready ---');
         console.log('Starting automatic fetching of timeline transactions...');
 
-        const initialTimelineMessage = `sub ${currentSubscriptionId} {"type":"timelineTransactions"}`;
-        TradeRepublicAPI.getInstance().sendMessage(initialTimelineMessage);
+        TradeRepublicAPI.getInstance().sendTransactionsMessage();
         console.log('Sent initial timelineTransactions request.');
-        isFetchingTransactions = true;
       },
-      onMessage: (message) => {
-        let jsonPayload: TransactionResponse;
+      onTransactionMessage: (message, { jsonPayload }) => {
         try {
-          const jsonMatch = message.match(/\{.*\}/s);
-          if (jsonMatch && jsonMatch[0]) {
-            jsonPayload = JSON.parse(jsonMatch[0]);
-          } else {
-            console.warn(
-              'Received message without a recognizable JSON payload:',
-              message,
+          allItems = allItems.concat(jsonPayload.items);
+          console.log(
+            `Collected ${jsonPayload.items.length} items. Total items: ${allItems.length}`,
+          );
+
+          const afterCursor = jsonPayload.cursors.after;
+
+          if (afterCursor) {
+            TradeRepublicAPI.getInstance().sendTransactionsMessage(afterCursor);
+            console.log(
+              `Sent next timelineTransactions request with after: ${afterCursor}`,
             );
-            return;
+          } else {
+            console.log('All initial timeline transactions fetched.');
+            // Now, fetch details for each transaction
+            if (allItems.length > 0) {
+              console.log('Starting to fetch details for each transaction...');
+              allItems.forEach((transaction) => {
+                transactionsToFetchDetailsFor.add(transaction.id);
+                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
+                  transaction.id,
+                );
+              });
+            } else {
+              // If no transactions, proceed to save and resolve
+              saveAndResolve(allItems);
+            }
           }
         } catch (error) {
-          console.error('Error parsing JSON from WebSocket message:', error);
-          console.error('Message content that caused error:', message);
-          return;
+          console.error('Error processing transaction message:', message);
+          reject(error);
         }
+      },
+      onTransactionDetailsMessage: (message, { jsonPayload }) => {
+        try {
+          const transactionId = jsonPayload.id;
+          const transactionIndex = allItems.findIndex(
+            (item) => item.id === transactionId,
+          );
 
-        if (isFetchingTransactions) {
-          if (
-            jsonPayload?.hasOwnProperty('items') &&
-            jsonPayload?.hasOwnProperty('cursors')
-          ) {
-            allItems = allItems.concat(jsonPayload.items);
+          if (transactionIndex !== -1) {
+            allItems[transactionIndex].sections = jsonPayload.sections;
             console.log(
-              `Collected ${jsonPayload.items.length} items. Total items: ${allItems.length}`,
+              `Attached sections for transaction ID: ${transactionId}`,
             );
+            fetchedDetailsCount++;
+            transactionsToFetchDetailsFor.delete(transactionId);
 
-            const afterCursor = jsonPayload.cursors.after;
-
-            if (afterCursor) {
-              currentSubscriptionId++;
-              const nextTimelineMessage = `sub ${currentSubscriptionId} {"type":"timelineTransactions", "after": "${afterCursor}"}`;
-              TradeRepublicAPI.getInstance().sendMessage(nextTimelineMessage);
-              console.log(
-                `Sent next timelineTransactions request with after: ${afterCursor}`,
-              );
-            } else {
-              console.log('All timeline transactions fetched.');
-              isFetchingTransactions = false;
-
-              const filePath = path.join(
-                process.cwd(),
-                `${OUTPUT_DIR}/${FILENAME}`,
-              );
-
-              if (!fs.existsSync(OUTPUT_DIR))
-                fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-
-              fs.writeFile(filePath, JSON.stringify(allItems), (error) => {
-                if (error) {
-                  console.error(`Error saving JSON file "${FILENAME}".`, error);
-                } else {
-                  console.log(
-                    `JSON file "${FILENAME}" successfully saved to ${filePath}.`,
-                  );
-                }
-              });
-
-              TradeRepublicAPI.getInstance().disconnect();
-              resolve(allItems);
+            if (
+              transactionsToFetchDetailsFor.size === 0 &&
+              allItems.length > 0
+            ) {
+              console.log('All transaction details fetched.');
+              saveAndResolve(allItems);
             }
           } else {
-            console.log(
-              'Received JSON message that is not a timelineTransactions response:',
-              jsonPayload,
+            console.warn(
+              `Received details for unknown transaction ID: ${transactionId}`,
             );
           }
+        } catch (error) {
+          console.error(
+            'Error processing transaction details message:',
+            message,
+          );
+          reject(error);
         }
       },
       onClose: (event) => {
         console.log(
           `WebSocket connection closed: Code ${event.code}, Reason: ${event.reason}`,
         );
-        if (isFetchingTransactions) {
-          reject(
-            new Error(
-              `WebSocket closed unexpectedly during fetch: Code ${event.code}, Reason: ${event.reason}`,
-            ),
-          );
-        }
       },
       onError: (error) => {
         console.error('WebSocket error:', error);

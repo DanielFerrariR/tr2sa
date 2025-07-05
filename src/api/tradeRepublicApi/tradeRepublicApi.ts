@@ -1,12 +1,17 @@
 import { Cookie, CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import {
   ConnectOptions,
   LoginPayload,
   VerifySmsPinPayload,
 } from './tradeRepublicApi.types';
-import { CONNECTION_STATUS } from './tradeRepublicApi.constants';
+import {
+  RECEIVED_COMMAND_TYPES,
+  CONNECTION_MESSAGE,
+  CONNECTION_STATUS,
+  SUBSCRIPTION_TYPES,
+} from './tradeRepublicApi.constants';
 import WebSocket from 'ws';
 
 export class TradeRepublicAPI {
@@ -15,6 +20,8 @@ export class TradeRepublicAPI {
   private _client: AxiosInstance;
   private _webSocket: WebSocket | undefined;
   private _sessionToken: string | undefined;
+  private _subscriptionId = 1;
+  private _subscriptions: { [key: number]: SUBSCRIPTION_TYPES } = {};
 
   private constructor() {
     this._cookieJar = new CookieJar();
@@ -55,29 +62,114 @@ export class TradeRepublicAPI {
     )?.value;
   }
 
+  public sendTransactionsMessage(after?: string) {
+    if (!this._webSocket) {
+      console.warn('WebSocket is not connected.');
+      return;
+    }
+
+    const jsonPayload = {
+      type: SUBSCRIPTION_TYPES.TRANSACTIONS,
+      after,
+      token: this._sessionToken,
+    };
+
+    this._webSocket.send(
+      `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
+    );
+    this._subscriptions[this._subscriptionId] = SUBSCRIPTION_TYPES.TRANSACTIONS;
+    this._subscriptionId++;
+  }
+
+  public sendTransactionDetailsMessage(transactionId: string) {
+    if (!this._webSocket) {
+      console.warn('WebSocket is not connected.');
+      return;
+    }
+
+    const jsonPayload = {
+      type: SUBSCRIPTION_TYPES.TRANSACTION_DETAILS,
+      id: transactionId,
+      token: this._sessionToken,
+    };
+
+    this._webSocket.send(
+      `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
+    );
+    this._subscriptions[this._subscriptionId] =
+      SUBSCRIPTION_TYPES.TRANSACTION_DETAILS;
+    this._subscriptionId++;
+  }
+
   public connect({
     onOpen,
     onClose,
     onConnected,
     onMessage,
+    onTransactionMessage,
+    onTransactionDetailsMessage,
     onError,
   }: ConnectOptions = {}) {
     this._webSocket = new WebSocket(process.env.TRADE_REPUBLIC_WEBSOCKET_URL!);
 
     this._webSocket.onopen = async () => {
-      this._webSocket!.send(
-        'connect 31 {"locale":"en","platformId":"webtrading","platformVersion":"Chrome/136.0.0.0","clientId":"app.traderepublic.com","clientVersion":"3.282.0"}',
-      );
+      this._webSocket!.send(CONNECTION_MESSAGE);
       onOpen?.();
     };
 
     this._webSocket.onmessage = (event) => {
       const message = event.data.toString();
+
       if (message === 'connected') {
         onConnected?.(message);
         return;
       }
-      onMessage?.(message);
+
+      const [subscriptionId, command, jsonString] = message.split(' ');
+
+      let jsonPayload;
+
+      try {
+        // jsonString might be undefined if is a keep-alive message
+        jsonPayload = jsonString && JSON.parse(jsonString);
+      } catch (error) {
+        console.error('Failed to parse JSON payload:', error);
+        return;
+      }
+
+      // Handle transaction messages
+      if (
+        this._subscriptions[Number(subscriptionId)] ===
+          SUBSCRIPTION_TYPES.TRANSACTIONS &&
+        command !== RECEIVED_COMMAND_TYPES.KEEP_ALIVE
+      ) {
+        onTransactionMessage?.(message, {
+          subscriptionId,
+          command,
+          jsonPayload,
+        });
+        return;
+      }
+
+      // Handle transaction details messages
+      if (
+        this._subscriptions[Number(subscriptionId)] ===
+          SUBSCRIPTION_TYPES.TRANSACTION_DETAILS &&
+        command !== RECEIVED_COMMAND_TYPES.KEEP_ALIVE
+      ) {
+        onTransactionDetailsMessage?.(message, {
+          subscriptionId,
+          command,
+          jsonPayload,
+        });
+        return;
+      }
+
+      onMessage?.(message, {
+        subscriptionId,
+        command,
+        jsonPayload,
+      });
     };
 
     this._webSocket.onclose = (event) => {
@@ -87,6 +179,8 @@ export class TradeRepublicAPI {
     this._webSocket.onerror = (event) => {
       onError?.(event);
     };
+
+    this;
   }
 
   public sendMessage(message: string) {
@@ -96,22 +190,18 @@ export class TradeRepublicAPI {
     }
 
     // To always include the token if the message has a format like: sub 1 {"type":"availableCash"}
-    const parts = message.trim().split(' ');
-    if (parts.length >= 2 && parts[0].toLowerCase() === 'sub') {
-      try {
-        const subscriptionId = parts[1];
-        const jsonString = parts.slice(2).join(' ');
-        const parsedJson = JSON.parse(jsonString);
-        parsedJson.token = this._sessionToken;
-        message = `sub ${subscriptionId} ${JSON.stringify(parsedJson)}`;
-        console.log(message);
-      } catch (e) {
-        console.warn(
-          "Could not parse subscription message for token injection. Ensure it's valid JSON.",
-          e,
-        );
-      }
+    try {
+      const [command, subscriptionId, jsonString] = message.split(' ');
+      const jsonPayload = JSON.parse(jsonString);
+      jsonPayload.token = this._sessionToken;
+      message = `${command} ${subscriptionId} ${JSON.stringify(jsonPayload)}`;
+    } catch (error) {
+      console.warn(
+        "Could not parse subscription message for token injection. Ensure it's valid JSON.",
+        error,
+      );
     }
+
     this._webSocket?.send(message);
   }
 
