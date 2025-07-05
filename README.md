@@ -8,4 +8,4 @@ This is a library for the private API of the Trade Republic online brokerage. It
 
 2 - npm install
 
-3 - npm run convert /path/to/your/Securities.pdf
+3 - npm run cli
