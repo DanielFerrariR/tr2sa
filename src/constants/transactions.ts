@@ -1,20 +1,27 @@
 export enum TRANSATION_EVENT_TYPE {
-  'INCOMING_TRANSFER_DELEGATION',
-  'card_successful_transaction',
-  'card_failed_transaction',
-  'trading_savingsplan_executed', // savings plan
-  'benefits_spare_change_execution', // roundup
-  'benefits_saveback_execution', // 15 euros per month
-  'card_successful_verification',
-  'INTEREST_PAYOUT', // interest
-  'OUTGOING_TRANSFER_DELEGATION',
-  'trading_trade_executed', // trade
-  'card_refund',
-  'ssp_corporate_action_invoice_cash', // dividend
-  'card_failed_verification',
-  'ssp_tax_correction_invoice',
-  'OUTGOING_TRANSFER',
-  'timeline_legacy_migrated_events',
-  'INCOMING_TRANSFER',
-  'card_order_billed',
+  INCOMING_TRANSFER_DELEGATION = 'INCOMING_TRANSFER_DELEGATION',
+  CARD_SUCCESSFUL_TRANSACTION = 'card_successful_transaction',
+  CARD_FAILED_TRANSACTION = 'card_failed_transaction',
+  TRADING_SAVINGSPLAN_EXECUTED = 'trading_savingsplan_executed', // savings plan
+  BENEFITS_SPARE_CHANGE_EXECUTION = 'benefits_spare_change_execution', // roundup
+  BENEFITS_SAVEBACK_EXECUTION = 'benefits_saveback_execution', // 15 euros per month
+  CARD_SUCCESSFUL_VERIFICATION = 'card_successful_verification',
+  INTEREST_PAYOUT = 'INTEREST_PAYOUT', // interest
+  OUTGOING_TRANSFER_DELEGATION = 'OUTGOING_TRANSFER_DELEGATION',
+  TRADING_TRADE_EXECUTED = 'trading_trade_executed', // trade
+  CARD_REFUND = 'card_refund',
+  SSP_CORPORATE_ACTION_INVOICE_CASH = 'ssp_corporate_action_invoice_cash', // dividend
+  CARD_FAILED_VERIFICATION = 'card_failed_verification',
+  SSP_TAX_CORRECTION_INVOICE = 'ssp_tax_correction_invoice',
+  OUTGOING_TRANSFER = 'OUTGOING_TRANSFER',
+  TIMELINE_LEGACY_MIGRATED_EVENTS = 'timeline_legacy_migrated_events',
+  INCOMING_TRANSFER = 'INCOMING_TRANSFER',
+  CARD_ORDER_BILLED = 'card_order_billed',
 }
+
+export const INVESTMENT_TRANSACTIONS = [
+  TRANSATION_EVENT_TYPE.TRADING_TRADE_EXECUTED,
+  TRANSATION_EVENT_TYPE.TRADING_SAVINGSPLAN_EXECUTED,
+  TRANSATION_EVENT_TYPE.BENEFITS_SPARE_CHANGE_EXECUTION,
+  TRANSATION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
+];
