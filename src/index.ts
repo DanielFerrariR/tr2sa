@@ -5,7 +5,7 @@ import { login } from './login';
 import { connectToWebSocket } from './connectToWebSocket';
 
 import { convertAndSaveSnowballCsv } from './convertAndSaveSnowballCsv';
-import { getListOfTransactions } from './getListOfTransactions';
+import { getTransactions } from './getTransactions';
 
 async function main() {
   const { action } = await inquirer.prompt([
@@ -40,7 +40,7 @@ async function main() {
   if (action === 'downloadJSONAndConvertToSnowballCsv') {
     const wasLoginSuccessful = await login();
     if (!wasLoginSuccessful) return;
-    const transactions = await getListOfTransactions();
+    const transactions = await getTransactions();
     convertAndSaveSnowballCsv(transactions);
     console.log('Conversion to Snowball CSV completed.');
     return;

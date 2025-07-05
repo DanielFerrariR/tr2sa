@@ -6,7 +6,7 @@ import { Transaction, TransactionResponse } from '../types';
 const OUTPUT_DIR = 'build';
 const FILENAME = 'all_timeline_transactions.json';
 
-export async function getListOfTransactions(): Promise<Transaction[]> {
+export async function getTransactions(): Promise<Transaction[]> {
   return new Promise((resolve, reject) => {
     let allItems: Transaction[] = [];
     let currentSubscriptionId = 1;
