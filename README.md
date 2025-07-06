@@ -45,7 +45,7 @@ Missing
 
 4 - npm run cli
 
-# Support
+## License
 
 Want to use this project? Awesome! Here's the deal:
 
