@@ -1,8 +1,5 @@
 import { CloseEvent, ErrorEvent } from 'ws';
-import {
-  TransactionDetailsResponse,
-  TransactionResponse,
-} from '../../../types';
+import { SUBSCRIPTION_TYPES } from '../constants';
 
 export type LoginPayload = {
   phoneNumber: string;
@@ -18,6 +15,7 @@ type SplitMessage<PayloadType = any> = {
   subscriptionId: string;
   command: string;
   jsonPayload?: PayloadType;
+  subscriptionType?: SUBSCRIPTION_TYPES;
 };
 
 export type ConnectOptions = {
@@ -25,13 +23,5 @@ export type ConnectOptions = {
   onClose?: (event: CloseEvent) => void;
   onConnected?: (message: string) => void;
   onMessage?: (message: string, splitMessage: SplitMessage) => void;
-  onTransactionMessage?: (
-    message: string,
-    splitMessage: SplitMessage<TransactionResponse>,
-  ) => void;
-  onTransactionDetailsMessage?: (
-    message: string,
-    splitMessage: SplitMessage<TransactionDetailsResponse>,
-  ) => void;
   onError?: (event: ErrorEvent) => void;
 };

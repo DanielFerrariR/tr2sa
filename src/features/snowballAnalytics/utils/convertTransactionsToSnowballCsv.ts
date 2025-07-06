@@ -1,17 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { Transaction } from '../types';
 import {
+  Transaction,
   INVESTMENT_TRANSACTIONS,
   TRADE_REPUBLIC_TRANSACTION_FEE,
   TRANSACTIONS_WITH_FEE,
-} from './constants';
-import { formatDate } from './utils';
+} from '../../tradeRepublic';
+import { formatDate } from '../../../utils';
 
 const OUTPUT_DIR = 'build';
 const FILENAME = 'snowball_transactions.csv';
 
-export const convertAndSaveSnowballCsv = (data: Transaction[]) => {
+export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
   if (!data?.length) {
     console.warn(
       'No data provided to convert to CSV. No file will be created.',

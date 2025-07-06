@@ -1,17 +1,14 @@
 import { Cookie, CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
 import axios, { AxiosInstance } from 'axios';
+import { ConnectOptions, LoginPayload, VerifySmsPinPayload } from './types';
 import {
-  ConnectOptions,
-  LoginPayload,
-  VerifySmsPinPayload,
-} from './tradeRepublicApi.types';
-import {
-  RECEIVED_COMMAND_TYPES,
   CONNECTION_MESSAGE,
   CONNECTION_STATUS,
   SUBSCRIPTION_TYPES,
-} from './tradeRepublicApi.constants';
+  TRADE_REPUBLIC_API_URL,
+  TRADE_REPUBLIC_WEBSOCKET_URL,
+} from './constants';
 import WebSocket from 'ws';
 
 export class TradeRepublicAPI {
@@ -26,7 +23,7 @@ export class TradeRepublicAPI {
   private constructor() {
     this._cookieJar = new CookieJar();
     this._client = axios.create({
-      baseURL: process.env.TRADE_REPUBLIC_API_URL,
+      baseURL: TRADE_REPUBLIC_API_URL,
       withCredentials: true,
     });
     wrapper(this._client);
@@ -55,7 +52,7 @@ export class TradeRepublicAPI {
     await this._client.post(`/api/v1/auth/web/login/${processId}/${smsPin}`);
     // Get the session token from cookies after login
     const cookies: Cookie[] = await this._cookieJar.getCookies(
-      process.env.TRADE_REPUBLIC_API_URL!,
+      TRADE_REPUBLIC_API_URL,
     );
     this._sessionToken = cookies.find(
       (cookie) => cookie.key === 'tr_session',
@@ -106,11 +103,9 @@ export class TradeRepublicAPI {
     onClose,
     onConnected,
     onMessage,
-    onTransactionMessage,
-    onTransactionDetailsMessage,
     onError,
   }: ConnectOptions = {}) {
-    this._webSocket = new WebSocket(process.env.TRADE_REPUBLIC_WEBSOCKET_URL!);
+    this._webSocket = new WebSocket(TRADE_REPUBLIC_WEBSOCKET_URL);
 
     this._webSocket.onopen = async () => {
       this._webSocket!.send(CONNECTION_MESSAGE);
@@ -137,36 +132,11 @@ export class TradeRepublicAPI {
         console.warn('Failed to parse JSON payload:', error);
       }
 
-      // Handle transaction messages
-      if (
-        this._subscriptions[Number(subscriptionId)] ===
-        SUBSCRIPTION_TYPES.TRANSACTIONS
-      ) {
-        onTransactionMessage?.(message, {
-          subscriptionId,
-          command,
-          jsonPayload,
-        });
-        return;
-      }
-
-      // Handle transaction details messages
-      if (
-        this._subscriptions[Number(subscriptionId)] ===
-        SUBSCRIPTION_TYPES.TRANSACTION_DETAILS
-      ) {
-        onTransactionDetailsMessage?.(message, {
-          subscriptionId,
-          command,
-          jsonPayload,
-        });
-        return;
-      }
-
       onMessage?.(message, {
         subscriptionId,
         command,
         jsonPayload,
+        subscriptionType: this._subscriptions[Number(subscriptionId)],
       });
     };
 
@@ -203,7 +173,6 @@ export class TradeRepublicAPI {
     }
 
     console.log('Sending message:', message);
-
     this._webSocket?.send(message);
   }
 

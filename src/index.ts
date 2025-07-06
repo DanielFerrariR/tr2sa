@@ -1,11 +1,20 @@
 require('dotenv').config(); // Needs to be at the top to load environment variables
 import fs from 'fs';
 import inquirer from 'inquirer';
-import { login } from './login';
-import { connectToWebSocket } from './connectToWebSocket';
+import {
+  login,
+  getTransactions,
+  interactiveSocketConnection,
+  convertTransactionsToSnowballCsv,
+} from './features';
 
-import { convertAndSaveSnowballCsv } from './convertAndSaveSnowballCsv';
-import { getTransactions } from './getTransactions';
+const MENU_OPTIONS = {
+  INTERACTIVE_SOCKET_CONNECTION: 'interactiveSocketConnection',
+  DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:
+    'downloadJSONAndConvertToSnowballCsv',
+  IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:
+    'importAndConvertToSnowballCsv',
+};
 
 async function main() {
   const { action } = await inquirer.prompt([
@@ -16,39 +25,43 @@ async function main() {
       choices: [
         {
           name: 'Connect to WebSocket (interact via prompt)',
-          value: 'connectToWebSocket',
+          value: MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION,
         },
         {
           name: 'Download JSON and convert it to Snowball CSV',
-          value: 'downloadJSONAndConvertToSnowballCsv',
+          value:
+            MENU_OPTIONS.DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV,
         },
         {
           name: 'Import existing JSON and convert it to Snowball CSV',
-          value: 'importAndConvertToSnowballCsv',
+          value: MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV,
         },
       ],
     },
   ]);
 
-  if (action === 'connectToWebSocket') {
+  if (action === MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION) {
     const wasLoginSuccessful = await login();
     if (!wasLoginSuccessful) return;
-    connectToWebSocket();
+    interactiveSocketConnection();
     return;
   }
 
-  if (action === 'downloadJSONAndConvertToSnowballCsv') {
+  if (
+    action ===
+    MENU_OPTIONS.DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV
+  ) {
     const wasLoginSuccessful = await login();
     if (!wasLoginSuccessful) return;
     const transactions = await getTransactions();
-    convertAndSaveSnowballCsv(transactions);
+    convertTransactionsToSnowballCsv(transactions);
     console.log('Conversion to Snowball CSV completed.');
     return;
   }
 
-  if (action === 'importAndConvertToSnowballCsv') {
+  if (action === MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV) {
     try {
-      const jsonFilePath = 'build/all_timeline_transactions.json';
+      const jsonFilePath = 'build/transactions.json';
       if (!fs.existsSync(jsonFilePath)) {
         console.error(`Error: ${jsonFilePath} not found.`);
         console.error(
@@ -60,7 +73,7 @@ async function main() {
       const transactionsJson = JSON.parse(
         fs.readFileSync(jsonFilePath, 'utf8'),
       );
-      convertAndSaveSnowballCsv(transactionsJson);
+      convertTransactionsToSnowballCsv(transactionsJson);
       console.log('Conversion to Snowball CSV completed.');
     } catch (error) {
       console.error('Error converting to Snowball CSV:', error);

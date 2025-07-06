@@ -1,7 +1,7 @@
 import readline from 'readline';
-import { TradeRepublicAPI, CONNECTION_STATUS } from './api';
+import { CONNECTION_STATUS, TradeRepublicAPI } from '../tradeRepublicApi';
 
-export const connectToWebSocket = (): void => {
+export const interactiveSocketConnection = (): void => {
   const readlineInterface = readline.createInterface({
     input: process.stdin,
     output: process.stdout,

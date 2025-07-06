@@ -1,4 +1,4 @@
-import { TRANSATION_EVENT_TYPE } from '../src/constants/transactions';
+import { TRANSATION_EVENT_TYPE } from '../../tradeRepublicApi/constants';
 
 interface SectionHeader {
   title: string; // Looks like a generic field like "You invested €101.00"
