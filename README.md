@@ -6,13 +6,13 @@ You can get some information how this works from https://github.com/J05HI/pytr, 
 
 Supported features:
 
-- Interactive Socket connection
-- Known supported commands (token is already added to the messages):
-  - {"type": "timelineTransactions"} // can add 'after' with the previous response to get the next list
-  - {"type": "timelineDetailV2", "id": timeline_id } // timeline_id is the transaction id
-  - Can get more of options from https://github.com/pytr-org/pytr/blob/master/pytr/api.py code, but this project isn't supporting and explaining how to use the others for now
-- Get Transactions list
-- Convert Transactions list to Snowball Analytics CSV
+- Connect to WebSocket (interact via prompt)
+  - Known supported commands (token is already added to the messages):
+    - {"type": "timelineTransactions"} // can add 'after' with the previous response to get the next list
+    - {"type": "timelineDetailV2", "id": timeline_id } // timeline_id is the transaction id
+    - Can get more of options from https://github.com/pytr-org/pytr/blob/master/pytr/api.py code, but this project isn't supporting and explaining how to use the others for now
+- Download JSON and convert it to Snowball CSV
+- Import existing JSON and convert it to Snowball CSV
 
 ## Steps
 
