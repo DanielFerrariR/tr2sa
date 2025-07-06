@@ -2,7 +2,17 @@
 
 This library only purpose is to generate a CSV file for Snowball Analytics.
 
-Currently only Buy/Sell transactions are supported, but more transactions will supported in the future (ex. Dividends).
+Currently supported transactions:
+
+- trades
+- savings plans
+- roundups
+- 15 euros per month bonus
+- dividends
+
+Missing
+
+- All cash related transactions (transfers, interest, tax correction, refunds, payments)
 
 ## What is currently supported
 

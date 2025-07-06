@@ -1,29 +1,21 @@
 export enum TRANSATION_EVENT_TYPE {
-  INCOMING_TRANSFER_DELEGATION = 'INCOMING_TRANSFER_DELEGATION',
-  CARD_SUCCESSFUL_TRANSACTION = 'card_successful_transaction',
-  CARD_FAILED_TRANSACTION = 'card_failed_transaction',
+  INCOMING_TRANSFER_DELEGATION = 'INCOMING_TRANSFER_DELEGATION', // incoming transfer delegation
+  CARD_SUCCESSFUL_TRANSACTION = 'card_successful_transaction', // card successful transaction
+  CARD_FAILED_TRANSACTION = 'card_failed_transaction', // card failed transaction
   TRADING_SAVINGSPLAN_EXECUTED = 'trading_savingsplan_executed', // savings plan
   BENEFITS_SPARE_CHANGE_EXECUTION = 'benefits_spare_change_execution', // roundup
-  BENEFITS_SAVEBACK_EXECUTION = 'benefits_saveback_execution', // 15 euros per month
-  CARD_SUCCESSFUL_VERIFICATION = 'card_successful_verification',
+  BENEFITS_SAVEBACK_EXECUTION = 'benefits_saveback_execution', // 15 euros per month bonus
+  CARD_SUCCESSFUL_VERIFICATION = 'card_successful_verification', // card successful verification
   INTEREST_PAYOUT = 'INTEREST_PAYOUT', // interest
-  OUTGOING_TRANSFER_DELEGATION = 'OUTGOING_TRANSFER_DELEGATION',
+  OUTGOING_TRANSFER_DELEGATION = 'OUTGOING_TRANSFER_DELEGATION', // outgoing transfer delegation
   TRADING_TRADE_EXECUTED = 'trading_trade_executed', // trade
-  CARD_REFUND = 'card_refund',
+  CARD_REFUND = 'card_refund', // card refund
   SSP_CORPORATE_ACTION_INVOICE_CASH = 'ssp_corporate_action_invoice_cash', // dividend
-  CARD_FAILED_VERIFICATION = 'card_failed_verification',
-  SSP_TAX_CORRECTION_INVOICE = 'ssp_tax_correction_invoice',
-  OUTGOING_TRANSFER = 'OUTGOING_TRANSFER',
-  TIMELINE_LEGACY_MIGRATED_EVENTS = 'timeline_legacy_migrated_events',
-  INCOMING_TRANSFER = 'INCOMING_TRANSFER',
-  CARD_ORDER_BILLED = 'card_order_billed',
-  GIFTER_TRANSACTION = 'GIFTER_TRANSACTION',
+  CARD_FAILED_VERIFICATION = 'card_failed_verification', // card failed verification
+  SSP_TAX_CORRECTION_INVOICE = 'ssp_tax_correction_invoice', // tax correction
+  OUTGOING_TRANSFER = 'OUTGOING_TRANSFER', // outgoing transfer
+  TIMELINE_LEGACY_MIGRATED_EVENTS = 'timeline_legacy_migrated_events', // legacy migrated events - need to check if still relevant
+  INCOMING_TRANSFER = 'INCOMING_TRANSFER', // income transfer
+  CARD_ORDER_BILLED = 'card_order_billed', // money spend in a new Trade Republic card
+  GIFTER_TRANSACTION = 'GIFTER_TRANSACTION', // Send stock gift to a friend
 }
-
-// Buy and Sell transactions (trades, savings plans, roundups and 15 euros per month)
-export const BUY_AND_SELL_TRANSACTIONS = [
-  TRANSATION_EVENT_TYPE.TRADING_TRADE_EXECUTED,
-  TRANSATION_EVENT_TYPE.TRADING_SAVINGSPLAN_EXECUTED,
-  TRANSATION_EVENT_TYPE.BENEFITS_SPARE_CHANGE_EXECUTION,
-  TRANSATION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
-];

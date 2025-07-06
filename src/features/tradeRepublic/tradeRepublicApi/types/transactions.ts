@@ -80,6 +80,120 @@ export interface OverviewSection {
   type: 'table';
 }
 
+// This only exists in TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS,
+// so maybe it will be removed in the future
+export interface LegacySavingsPlanSection {
+  title: 'Savings plan';
+  data: [
+    {
+      title: string;
+      detail: {
+        title: string;
+        timestamp: string;
+        amount: string;
+        icon: string;
+        status: string;
+        action: {
+          type: string;
+          payload: {
+            savingsPlanId: string;
+          };
+        };
+        subtitle: string;
+        type: string;
+      };
+      style: 'plain';
+    },
+  ];
+  action: null;
+}
+
+// This only exists in TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS,
+// so maybe it will be removed in the future
+export interface LegagyTrasactionSection {
+  title: 'Transaction';
+  data: (
+    | {
+        title: 'Shares';
+        detail: {
+          text: string; // "0.373692"
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Share price';
+        detail: {
+          text: string; // "€133.80"
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Fee';
+        detail: {
+          text: string; // "Free" or "€0.00"
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Total';
+        detail: {
+          text: string; // "€50.00"
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'highlighted';
+      }
+  )[];
+  action: null;
+  type: 'table';
+}
+
+// This only exists in TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS,
+// so maybe it will be removed in the future
+export interface LegacyPerformanceSection {
+  title: 'Performance';
+  data: [
+    {
+      title: 'Profit';
+      detail: {
+        text: string; // "5.37 %"
+        trend: string; // "positive"
+        action: null;
+        displayValue: null;
+        type: 'text';
+      };
+      style: 'plain';
+    },
+    {
+      title: 'Gain';
+      detail: {
+        text: string; // "€19.61"
+        trend: string; // "positive"
+        action: null;
+        displayValue: null;
+        type: 'text';
+      };
+      style: 'plain';
+    },
+  ];
+  action: null;
+  type: 'horizontalTable';
+}
+
 export interface DocumentsSection {
   title: 'Documents';
   data: {
@@ -231,7 +345,10 @@ export type TransactionDetails =
   | StatusSection
   | TransactionSection
   | MoreSetion
-  | SupportSection;
+  | SupportSection
+  | LegacySavingsPlanSection
+  | LegagyTrasactionSection
+  | LegacyPerformanceSection;
 
 export interface TransactionDetailsResponse {
   id: string;
