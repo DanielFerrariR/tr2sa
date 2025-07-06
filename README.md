@@ -1,10 +1,10 @@
-# jstr: Use TradeRepublic in terminal
+# tr2sa: Convert Trade Republic Transactions History to Snowball Analytics CSV
 
-This is a library for the private API of the Trade Republic online brokerage. It is not affiliated with Trade Republic Bank GmbH.
+This library only purpose is to generate a CSV file for Snowball Analytics.
 
-You can get some information how this works from https://github.com/J05HI/pytr, but this documentation looks a bit outdated (Ex. timelineDetail doesn't work anymore and needs to use timelineDetailV2 instead).
+Currently only Buy/Sell transactions are supported, but more transactions will supported in the future (ex. Dividends).
 
-Supported features:
+## What is currently supported
 
 - Connect to WebSocket (interact via prompt)
   - Known supported commands (token is already added to the messages):
@@ -12,7 +12,7 @@ Supported features:
     - {"type": "timelineDetailV2", "id": timeline_id } // timeline_id is the transaction id
     - Can get more of options from https://github.com/pytr-org/pytr/blob/master/pytr/api.py code, but this project isn't supporting and explaining how to use the others for now
 - Download JSON and convert it to Snowball CSV
-- Import existing JSON and convert it to Snowball CSV
+- Import existing JSON and convert it to Snowball CSV (connection to Trade Republic api isn't needed)
 
 ## Steps
 
@@ -20,6 +20,6 @@ Supported features:
 
 2 - npm install
 
-2 - Create a .env file (check .env.example)
+3 - Create a .env file (check .env.example)
 
-3 - npm run cli
+4 - npm run cli
