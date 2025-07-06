@@ -12,7 +12,18 @@ Currently supported transactions:
 
 Missing
 
-- All cash related transactions (transfers, interest, tax correction, refunds, payments)
+- All cash related transactions events (transfers, interest, tax correction, refunds, payments)
+  - INCOMING_TRANSFER_DELEGATION // incoming transfer delegation
+  - card_successful_transaction // card successful transaction
+  - INTEREST_PAYOUT // interest
+  - OUTGOING_TRANSFER_DELEGATION // outgoing transfer delegation
+  - card_refund // card refund
+  - ssp_tax_correction_invoice // tax correction
+  - OUTGOING_TRANSFER // outgoing transfer
+  - timeline_legacy_migrated_events // interest and transfers
+  - INCOMING_TRANSFER // income transfer
+  - card_order_billed // money spend in a new Trade Republic card
+  - GIFTER_TRANSACTION // Send stock gift to a friend
 
 ## What is currently supported
 
@@ -33,3 +44,15 @@ Missing
 3 - Create a .env file (check .env.example)
 
 4 - npm run cli
+
+# Support
+
+Want to use this project? Awesome! Here's the deal:
+
+You're welcome to use it for personal, non-commercial projects without any cost. Feel free to explore, learn, and create!
+
+For commercial use, please reach out to me. We can discuss licensing options.
+
+If you'd like to support my work and help me continue creating, you can always chip in here: https://streamlabs.com/danielferrarir
+
+Thanks for your interest!
