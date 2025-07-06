@@ -53,6 +53,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     'FeeTax',
     'Exchange',
     'FeeCurrency',
+    'Note',
   ];
 
   let csvRows = [];
@@ -70,12 +71,12 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const date = formatDate(new Date(item.timestamp));
       const symbol = item.icon.split('/')[1];
       const exchange = '';
-
       let price: string | undefined;
       let quantity: string | undefined;
       let currency: string | undefined;
       let feeTax: string | undefined;
       let feeCurrency: string | undefined;
+      let note: string | undefined;
 
       item.sections?.forEach((section) => {
         if (section.title === 'Transaction') {
@@ -95,6 +96,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             signToCurrency[dividendPerShareSubsction?.detail?.text?.[0]!];
           feeTax = feeSubSection?.detail?.text?.slice(1);
           feeCurrency = signToCurrency[feeSubSection?.detail?.text?.[0]!];
+          note = item.title;
         }
       });
 
@@ -108,6 +110,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
         feeTax,
         exchange,
         feeCurrency,
+        note,
       ];
 
       csvRows.push(row.map((field) => `"${field}"`).join(','));
@@ -125,6 +128,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       let currency: string | undefined;
       let feeTax: string | undefined;
       let feeCurrency: string | undefined;
+      let note: string | undefined;
 
       item.sections?.forEach((section) => {
         if (section.title === 'Overview') {
@@ -152,6 +156,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             feeSubSection?.detail?.text === 'Free'
               ? ''
               : signToCurrency[feeSubSection?.detail?.text?.[0]!];
+          note = item.title;
         }
       });
 
@@ -165,6 +170,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
         feeTax,
         exchange,
         feeCurrency,
+        note,
       ];
 
       csvRows.push(row.map((field) => `"${field}"`).join(','));
@@ -186,6 +192,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       let currency: string | undefined;
       let feeTax: string | undefined;
       let feeCurrency: string | undefined;
+      let note: string | undefined;
 
       item.sections?.forEach((section) => {
         if (section.title === 'Transaction') {
@@ -210,6 +217,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             feeSubSection?.detail?.text === 'Free'
               ? ''
               : signToCurrency[feeSubSection?.detail?.text?.[0]!];
+          note = item.title;
         }
       });
 
@@ -223,6 +231,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
         feeTax,
         exchange,
         feeCurrency,
+        note,
       ];
 
       csvRows.push(row.map((field) => `"${field}"`).join(','));
