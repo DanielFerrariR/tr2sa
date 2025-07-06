@@ -14,7 +14,7 @@ export enum TRANSATION_EVENT_TYPE {
   CARD_FAILED_VERIFICATION = 'card_failed_verification', // card failed verification
   SSP_TAX_CORRECTION_INVOICE = 'ssp_tax_correction_invoice', // tax correction
   OUTGOING_TRANSFER = 'OUTGOING_TRANSFER', // outgoing transfer
-  TIMELINE_LEGACY_MIGRATED_EVENTS = 'timeline_legacy_migrated_events', // legacy migrated events - need to check if still relevant
+  TIMELINE_LEGACY_MIGRATED_EVENTS = 'timeline_legacy_migrated_events', // trades, savings plans, interest and transfers, but not easily identifiable
   INCOMING_TRANSFER = 'INCOMING_TRANSFER', // income transfer
   CARD_ORDER_BILLED = 'card_order_billed', // money spend in a new Trade Republic card
   GIFTER_TRANSACTION = 'GIFTER_TRANSACTION', // Send stock gift to a friend
