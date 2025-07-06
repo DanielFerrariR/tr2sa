@@ -1,7 +1,7 @@
 import { TRANSATION_EVENT_TYPE } from '../../tradeRepublicApi/constants';
 
 export interface SectionHeader {
-  title: string; // Looks like a generic field like "You invested €101.00"
+  title: string; // "You invested €11.32"
   data: {
     icon: string;
     subtitleText: null;
@@ -18,44 +18,53 @@ export interface SectionHeader {
 
 export interface OverviewSection {
   title: 'Overview';
-  data: {
-    title: string;
-    detail:
-      | {
+  data: (
+    | {
+        title: 'Round up';
+        detail: {
           text: string;
-          trend: null;
-          action: {
-            payload: {
-              id: string;
-              sections: {
-                title: string;
-                action: null;
-                data?: {
-                  title: string;
-                  detail: {
-                    text: string;
-                    trend?: null;
-                    action?: null;
-                    displayValue?: null;
-                    type: 'text';
-                  };
-                  style: 'plain';
-                }[];
-                type: 'title';
-              } | null;
-            };
-            displayValue?: { text: string; prefix: string };
-            type: 'text';
-          };
-        }
-      | {
-          text: string; // Header has a generic text like "You invested €101.00"
           functionalStyle: string;
-          action: null;
           type: 'status';
         };
-    style: 'plain';
-  }[];
+        style: 'plain';
+      }
+    | {
+        title: 'Asset';
+        detail: {
+          text: string;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Transaction';
+        detail: {
+          text: '';
+          displayValue: {
+            text: string; // "€82.39"
+            prefix: string; // "0.137395 x "
+          };
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Fee';
+        detail: {
+          text: string; // "Free" or "€0.00"
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Total';
+        detail: {
+          text: string; // "€11.32"
+          type: 'text';
+        };
+        style: 'highlighted';
+      }
+  )[];
   action: null;
   type: 'table';
 }

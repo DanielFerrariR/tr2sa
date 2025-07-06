@@ -3,8 +3,7 @@ import path from 'path';
 import {
   Transaction,
   INVESTMENT_TRANSACTIONS,
-  TRADE_REPUBLIC_TRANSACTION_FEE,
-  TRANSACTIONS_WITH_FEE,
+  OverviewSection,
 } from '../../tradeRepublic';
 import { formatDate } from '../../../utils';
 
@@ -41,14 +40,36 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     const event = item.amount.value < 0 ? 'Buy' : 'Sell';
     const date = formatDate(new Date(item.timestamp));
     const symbol = item.icon.split('/')[1];
-    const price = item.amount.value;
-    const quantity = '';
     const currency = item.amount.currency;
-    const feeTax = TRANSACTIONS_WITH_FEE.includes(item.eventType)
-      ? TRADE_REPUBLIC_TRANSACTION_FEE
-      : '';
     const exchange = '';
     const feeCurrenty = '';
+
+    // These only exist inside transaction details
+    let price: string | undefined;
+    let quantity: string | undefined;
+    let feeTax: string | undefined;
+    item.sections?.forEach((section) => {
+      if (section.title === 'Overview') {
+        const overviewSection = section as OverviewSection;
+        const transactionSubSection = overviewSection.data.find(
+          (subSection) => subSection.title === 'Transaction',
+        );
+        const feeSubSection = overviewSection.data.find(
+          (subSection) => subSection.title === 'Fee',
+        );
+        price = transactionSubSection?.detail?.displayValue?.text?.replace(
+          '€',
+          '',
+        );
+        quantity = transactionSubSection?.detail?.displayValue?.prefix
+          ?.replace(' × ', '')
+          .replace(' x ', '');
+        feeTax =
+          feeSubSection?.detail?.text === 'Free'
+            ? ''
+            : feeSubSection?.detail?.text?.replace('€', '');
+      }
+    });
 
     const row = [
       event,

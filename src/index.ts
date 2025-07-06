@@ -61,15 +61,15 @@ async function main() {
 
   if (action === MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV) {
     try {
-      const jsonFilePath = 'build/transactions.json';
+      const jsonFilePath = 'build/transactions_with_details.json';
       if (!fs.existsSync(jsonFilePath)) {
         console.error(`Error: ${jsonFilePath} not found.`);
         console.error(
-          'Please ensure you have previously saved your transaction data to this file, perhaps from a prior socket interaction.',
+          'Please ensure you have previously saved your transaction with details data to this file, perhaps from a prior socket interaction.',
         );
         return;
       }
-      console.log(`Reading transactions from ${jsonFilePath}...`);
+      console.log(`Reading transactions with details from ${jsonFilePath}...`);
       const transactionsJson = JSON.parse(
         fs.readFileSync(jsonFilePath, 'utf8'),
       );
