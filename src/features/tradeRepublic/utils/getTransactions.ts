@@ -98,11 +98,15 @@ export async function getTransactions(): Promise<Transaction[]> {
               for (const transaction of allItems) {
                 transactionsToFetchDetailsFor.add(transaction.id);
               }
-              for (const transaction of allItems) {
-                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
-                  transaction.id,
-                );
-              }
+              const getTransactionDetails = async () => {
+                for (const transaction of allItems) {
+                  TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
+                    transaction.id,
+                  );
+                  new Promise((resolve) => setTimeout(resolve, 200));
+                }
+              };
+              getTransactionDetails();
             }
           } catch (error) {
             console.error('Error processing transaction message:', message);
@@ -115,23 +119,27 @@ export async function getTransactions(): Promise<Transaction[]> {
             const transactionDetailsResponse =
               jsonPayload as TransactionDetailsResponse;
 
-            // Transaction ID can be in the payload id or in the sections
-            // Sometimes the payload id can be different (not sure why),
-            // then we use the one from the Support Section as the last resort
-            let transactionId = jsonPayload.id;
+            // Somestimes the transactionId doesn't match the transactionDetailsId (not sure why)
+            // So we need to find the transactionId in the support section
+            let sectionTransactionId: string | undefined;
             transactionDetailsResponse.sections.forEach((section) => {
               if (
-                (section as SupportSection).data?.[0].detail?.action?.payload
+                (section as SupportSection).data?.[0]?.detail?.action?.payload
                   ?.contextParams?.timelineEventId
               ) {
-                transactionId = (section as SupportSection).data[0].detail
-                  .action.payload.contextParams.timelineEventId;
+                sectionTransactionId = (section as SupportSection).data[0]
+                  .detail.action.payload.contextParams.timelineEventId;
               }
             });
 
-            const transactionIndex = allItems.findIndex(
-              (item) => item.id === transactionId,
-            );
+            let transactionId = jsonPayload.id;
+            const transactionIndex = allItems.findIndex((item) => {
+              if (item.id === sectionTransactionId) {
+                transactionId = sectionTransactionId;
+                return true;
+              }
+              return item.id === jsonPayload.id;
+            });
 
             if (transactionIndex !== -1) {
               allItems[transactionIndex].sections =
