@@ -52,12 +52,12 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const date = formatDate(new Date(item.timestamp));
       const symbol = item.icon.split('/')[1];
       const exchange = '';
+      const note = item.title;
       let price: string | undefined;
       let quantity: string | undefined;
       let currency: string | undefined;
       let feeTax: string | undefined;
       let feeCurrency: string | undefined;
-      let note: string | undefined;
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
@@ -77,7 +77,6 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             signToCurrency[dividendPerShareSubsction?.detail?.text?.[0]!];
           feeTax = feeSubSection?.detail?.text?.slice(1);
           feeCurrency = signToCurrency[feeSubSection?.detail?.text?.[0]!];
-          note = item.title;
         }
       });
 
@@ -110,13 +109,12 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const date = formatDate(new Date(item.timestamp));
       const symbol = item.icon.split('/')[1];
       const exchange = '';
-
+      const note = item.title;
       let price: string | undefined;
       let quantity: string | undefined;
       let currency: string | undefined;
       let feeTax: string | undefined;
       let feeCurrency: string | undefined;
-      let note: string | undefined;
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Overview') {
@@ -144,7 +142,6 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             feeSubSection?.detail?.text === 'Free'
               ? ''
               : signToCurrency[feeSubSection?.detail?.text?.[0]!];
-          note = item.title;
         }
       });
 
@@ -164,7 +161,52 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       csvRows.push(row.map((field) => `"${field}"`).join(','));
     }
 
-    // Legacy transactions (trades, savings plans) (interest and transfers will be added later)
+    // Interest
+    if (item.eventType === TRANSATION_EVENT_TYPE.INTEREST_PAYOUT) {
+      const event = 'Cash_Gain';
+      const date = formatDate(new Date(item.timestamp));
+      const symbol = item.amount.currency;
+      const exchange = '';
+      const note = item.title;
+      let price = 1;
+      let quantity: string | undefined;
+      let currency: string | undefined;
+      let feeTax: string | undefined;
+      let feeCurrency: string | undefined;
+
+      item.sections?.forEach((section) => {
+        if ('title' in section && section.title === 'Transaction') {
+          const tableSection = section as TableSection;
+          const accruedSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Accrued',
+          );
+          const taxSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Tax',
+          );
+          quantity = accruedSubSection?.detail?.text?.slice(1);
+          currency = signToCurrency[accruedSubSection?.detail?.text?.[0]!];
+          feeTax = taxSubSection?.detail?.text?.slice(1);
+          feeCurrency = signToCurrency[taxSubSection?.detail?.text?.[0]!];
+        }
+      });
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
+    // Legacy transactions (trades, savings plans)
     if (
       item.eventType ===
         TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
@@ -175,13 +217,12 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const date = formatDate(new Date(item.timestamp));
       const symbol = item.icon.split('/')[1];
       const exchange = '';
-
+      const note = item.title;
       let price: string | undefined;
       let quantity: string | undefined;
       let currency: string | undefined;
       let feeTax: string | undefined;
       let feeCurrency: string | undefined;
-      let note: string | undefined;
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
@@ -206,9 +247,76 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             feeSubSection?.detail?.text === 'Free'
               ? ''
               : signToCurrency[feeSubSection?.detail?.text?.[0]!];
-          note = item.title;
         }
       });
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
+    // Legacy transactions (Interest)
+    if (
+      item.eventType ===
+        TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
+      item.title === 'Interest' &&
+      item.subtitle === null
+    ) {
+      const event = 'Cash_Gain';
+      const date = formatDate(new Date(item.timestamp));
+      const symbol = item.amount.currency;
+      const exchange = '';
+      const price = 1;
+      const quantity = item.amount.value;
+      const currency = item.amount.currency;
+      const feeTax = '';
+      const feeCurrency = '';
+      const note = item.title;
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
+    // Legacy transactions (Transfers)
+    if (
+      item.eventType ===
+        TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
+      item.title !== 'Interest' &&
+      item.subtitle === null
+    ) {
+      const event = item.amount.value > 0 ? 'Cash_In' : 'Cash_Out';
+      const date = formatDate(new Date(item.timestamp));
+      const symbol = item.amount.currency;
+      const exchange = '';
+      const price = 1;
+      const quantity = item.amount.value;
+      const currency = item.amount.currency;
+      const feeTax = '';
+      const feeCurrency = '';
+      const note = item.title;
 
       const row = [
         event,

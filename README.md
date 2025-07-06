@@ -9,18 +9,18 @@ Currently supported transactions:
 - roundups
 - 15 euros per month bonus
 - dividends
+- interest
+- transfers (in progress, partially done)
 
 Missing
 
-- All cash related transactions events (transfers, interest, tax correction, refunds, payments)
+- Some cash related transactions events (transfers, tax correction, refunds, payments)
   - INCOMING_TRANSFER_DELEGATION // incoming transfer delegation
   - card_successful_transaction // card successful transaction
-  - INTEREST_PAYOUT // interest
   - OUTGOING_TRANSFER_DELEGATION // outgoing transfer delegation
   - card_refund // card refund
   - ssp_tax_correction_invoice // tax correction
   - OUTGOING_TRANSFER // outgoing transfer
-  - timeline_legacy_migrated_events // interest and transfers
   - INCOMING_TRANSFER // income transfer
   - card_order_billed // money spend in a new Trade Republic card
   - GIFTER_TRANSACTION // Send stock gift to a friend
