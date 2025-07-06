@@ -29,6 +29,17 @@ export interface OverviewSection {
         style: 'plain';
       }
     | {
+        title: 'Event';
+        detail: {
+          text: string;
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
         title: 'Asset';
         detail: {
           text: string;
@@ -115,13 +126,52 @@ export interface StatusSection {
 
 export interface TransactionSection {
   title: 'Transaction';
-  data: [
-    {
-      title: string;
-      detail: { text: string; type: string };
-      style: 'plain';
-    },
-  ];
+  data: (
+    | {
+        title: 'Shares';
+        detail: {
+          text: string; // 12.944137
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Dividend per share';
+        detail: {
+          text: string; // $0.27
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Tax';
+        detail: {
+          text: string; // €0.45
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+    | {
+        title: 'Total';
+        detail: {
+          text: string; // €2.55'
+          trend: null;
+          action: null;
+          displayValue: null;
+          type: 'text';
+        };
+        style: 'plain';
+      }
+  )[];
   type: 'table';
 }
 
@@ -205,7 +255,7 @@ export interface Transaction {
     value: number;
     fractionDigits: number;
   } | null;
-  status: string;
+  status: 'EXECUTED' | 'CANCELED';
   action: {
     type: string;
     payload: string;
