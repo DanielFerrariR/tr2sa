@@ -1,6 +1,6 @@
 import { TRANSATION_EVENT_TYPE } from '../../tradeRepublicApi/constants';
 
-interface SectionHeader {
+export interface SectionHeader {
   title: string; // Looks like a generic field like "You invested €101.00"
   data: {
     icon: string;
@@ -16,7 +16,7 @@ interface SectionHeader {
   type: 'header';
 }
 
-interface OverviewSection {
+export interface OverviewSection {
   title: 'Overview';
   data: {
     title: string;
@@ -34,9 +34,9 @@ interface OverviewSection {
                   title: string;
                   detail: {
                     text: string;
-                    trend: null;
-                    action: null;
-                    displayValue: null;
+                    trend?: null;
+                    action?: null;
+                    displayValue?: null;
                     type: 'text';
                   };
                   style: 'plain';
@@ -60,7 +60,7 @@ interface OverviewSection {
   type: 'table';
 }
 
-interface DocumentsSection {
+export interface DocumentsSection {
   title: 'Documents';
   data: {
     title: string;
@@ -77,7 +77,46 @@ interface DocumentsSection {
   type: 'documents';
 }
 
-interface SupportSection {
+export interface StatusSection {
+  title: 'Status';
+  steps: [
+    {
+      leading: {
+        avatar: { status: string; type: string };
+        connection: { order: string };
+      };
+      content: {
+        title: string;
+        timestamp: string;
+      };
+    },
+    {
+      leading: {
+        avatar: { status: string; type: string };
+        connection: { order: string };
+      };
+      content: {
+        title: string;
+        timestamp: string;
+      };
+    },
+  ];
+  type: 'steps';
+}
+
+export interface TransactionSection {
+  title: 'Transaction';
+  data: [
+    {
+      title: string;
+      detail: { text: string; type: string };
+      style: 'plain';
+    },
+  ];
+  type: 'table';
+}
+
+export interface SupportSection {
   title: string;
   data: {
     title: string;
@@ -104,10 +143,35 @@ interface SupportSection {
   type: 'table';
 }
 
-type TransactionDetails =
+export interface MoreSetion {
+  title: 'More';
+  data: [
+    {
+      title: string;
+      detail: {
+        icon: string;
+        action: {
+          type: string;
+          payload: {
+            link: string;
+          };
+        };
+        style: string;
+        type: string;
+      };
+      style: 'plain';
+    },
+  ];
+  type: 'table';
+}
+
+export type TransactionDetails =
   | SectionHeader
   | OverviewSection
   | DocumentsSection
+  | StatusSection
+  | TransactionSection
+  | MoreSetion
   | SupportSection;
 
 export interface TransactionDetailsResponse {
@@ -141,12 +205,7 @@ export interface Transaction {
   cashAccountNumber: string;
   hidden: boolean;
   deleted: boolean;
-  sections?: (
-    | SectionHeader
-    | OverviewSection
-    | DocumentsSection
-    | SupportSection
-  )[]; // Added later to the transaction
+  sections?: TransactionDetails[]; // Added later to the transaction
 }
 
 export interface TransactionResponse {

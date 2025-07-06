@@ -3,8 +3,11 @@ import path from 'path';
 import {
   RECEIVED_COMMAND_TYPES,
   SUBSCRIPTION_TYPES,
+  SupportSection,
   TradeRepublicAPI,
   Transaction,
+  TransactionDetailsResponse,
+  TransactionResponse,
 } from '../tradeRepublicApi';
 
 const OUTPUT_DIR = 'build';
@@ -63,12 +66,14 @@ export async function getTransactions(): Promise<Transaction[]> {
 
         if (subscriptionType === SUBSCRIPTION_TYPES.TRANSACTIONS) {
           try {
-            allItems = allItems.concat(jsonPayload.items);
+            const transactionResponse = jsonPayload as TransactionResponse;
+
+            allItems = allItems.concat(transactionResponse.items);
             console.log(
-              `Collected ${jsonPayload.items.length} items. Total items: ${allItems.length}`,
+              `Collected ${transactionResponse.items.length} items. Total items: ${allItems.length}`,
             );
 
-            const afterCursor = jsonPayload.cursors.after;
+            const afterCursor = transactionResponse.cursors.after;
             if (afterCursor) {
               TradeRepublicAPI.getInstance().sendTransactionsMessage(
                 afterCursor,
@@ -107,13 +112,30 @@ export async function getTransactions(): Promise<Transaction[]> {
 
         if (subscriptionType === SUBSCRIPTION_TYPES.TRANSACTION_DETAILS) {
           try {
-            const transactionId = jsonPayload.id;
+            const transactionDetailsResponse =
+              jsonPayload as TransactionDetailsResponse;
+
+            // Transaction ID can be in the payload id or in the sections
+            // Sometimes the payload id can be different (not sure why),
+            // then we use the one from the Support Section as the last resort
+            let transactionId = jsonPayload.id;
+            transactionDetailsResponse.sections.forEach((section) => {
+              if (
+                (section as SupportSection).data?.[0].detail?.action?.payload
+                  ?.contextParams?.timelineEventId
+              ) {
+                transactionId = (section as SupportSection).data[0].detail
+                  .action.payload.contextParams.timelineEventId;
+              }
+            });
+
             const transactionIndex = allItems.findIndex(
               (item) => item.id === transactionId,
             );
 
             if (transactionIndex !== -1) {
-              allItems[transactionIndex].sections = jsonPayload.sections;
+              allItems[transactionIndex].sections =
+                transactionDetailsResponse.sections;
               console.log(
                 `Attached sections for transaction ID: ${transactionId}`,
               );
