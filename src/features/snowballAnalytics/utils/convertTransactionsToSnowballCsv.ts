@@ -1,11 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import {
+  TableSection,
   Transaction,
-  OverviewSection,
   TRANSATION_EVENT_TYPE,
-  TransactionSection,
-  LegagyTrasactionSection,
 } from '../../tradeRepublic';
 import { formatDate } from '../../../utils';
 
@@ -17,23 +15,6 @@ const signToCurrency: any = {
   $: 'USD',
   '£': 'GBP',
 };
-
-// Buy and Sell transactions (trades, savings plans, roundups and 15 euros per month bonus)
-const BUY_AND_SELL_TRANSACTIONS = [
-  TRANSATION_EVENT_TYPE.TRADING_TRADE_EXECUTED,
-  TRANSATION_EVENT_TYPE.TRADING_SAVINGSPLAN_EXECUTED,
-  TRANSATION_EVENT_TYPE.BENEFITS_SPARE_CHANGE_EXECUTION,
-  TRANSATION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
-];
-
-// Legacy transactions (timeline_legacy_migrated_events) aren't easily to identify
-// They can be transfers, interest, savings and trades
-// savings and trades can be identified by the subtitle, but transfers and interest are using the title instead
-const SUBTITLE_OF_LEGACY_OPERATIONS = [
-  'Saving executed',
-  'Sell Order',
-  'Buy Order',
-];
 
 export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
   if (!data?.length) {
@@ -79,15 +60,15 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       let note: string | undefined;
 
       item.sections?.forEach((section) => {
-        if (section.title === 'Transaction') {
-          const transactionSection = section as TransactionSection;
-          const SharesSubsection = transactionSection.data.find(
+        if ('title' in section && section.title === 'Transaction') {
+          const tableSection = section as TableSection;
+          const SharesSubsection = tableSection.data.find(
             (subSection) => subSection.title === 'Shares',
           );
-          const dividendPerShareSubsction = transactionSection.data.find(
+          const dividendPerShareSubsction = tableSection.data.find(
             (subSection) => subSection.title === 'Dividend per share',
           );
-          const feeSubSection = transactionSection.data.find(
+          const feeSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Tax',
           );
           price = dividendPerShareSubsction?.detail?.text?.slice(1);
@@ -117,7 +98,14 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     }
 
     // Buy and Sell transactions (trades, savings plans, roundups and 15 euros per month bonus)
-    if (BUY_AND_SELL_TRANSACTIONS.includes(item.eventType)) {
+    if (
+      [
+        TRANSATION_EVENT_TYPE.TRADING_TRADE_EXECUTED,
+        TRANSATION_EVENT_TYPE.TRADING_SAVINGSPLAN_EXECUTED,
+        TRANSATION_EVENT_TYPE.BENEFITS_SPARE_CHANGE_EXECUTION,
+        TRANSATION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
+      ].includes(item.eventType)
+    ) {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
       const date = formatDate(new Date(item.timestamp));
       const symbol = item.icon.split('/')[1];
@@ -131,12 +119,12 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       let note: string | undefined;
 
       item.sections?.forEach((section) => {
-        if (section.title === 'Overview') {
-          const overviewSection = section as OverviewSection;
-          const transactionSubSection = overviewSection.data.find(
+        if ('title' in section && section.title === 'Overview') {
+          const tableSection = section as TableSection;
+          const transactionSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Transaction',
           );
-          const feeSubSection = overviewSection.data.find(
+          const feeSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Fee',
           );
           price = transactionSubSection?.detail?.displayValue?.text?.slice(1);
@@ -180,7 +168,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     if (
       item.eventType ===
         TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
-      SUBTITLE_OF_LEGACY_OPERATIONS.includes(item.subtitle)
+      item.subtitle !== null &&
+      ['Saving executed', 'Sell Order', 'Buy Order'].includes(item.subtitle)
     ) {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
       const date = formatDate(new Date(item.timestamp));
@@ -195,15 +184,15 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       let note: string | undefined;
 
       item.sections?.forEach((section) => {
-        if (section.title === 'Transaction') {
-          const overviewSection = section as LegagyTrasactionSection;
-          const sharesSubsection = overviewSection.data.find(
+        if ('title' in section && section.title === 'Transaction') {
+          const tableSection = section as TableSection;
+          const sharesSubsection = tableSection.data.find(
             (subSection) => subSection.title === 'Shares',
           );
-          const sharesPriceSubsection = overviewSection.data.find(
+          const sharesPriceSubsection = tableSection.data.find(
             (subSection) => subSection.title === 'Share price',
           );
-          const feeSubSection = overviewSection.data.find(
+          const feeSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Fee',
           );
           price = sharesPriceSubsection?.detail?.text?.slice(1);

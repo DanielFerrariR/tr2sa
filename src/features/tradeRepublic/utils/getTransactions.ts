@@ -3,7 +3,7 @@ import path from 'path';
 import {
   RECEIVED_COMMAND_TYPES,
   SUBSCRIPTION_TYPES,
-  SupportSection,
+  TableSection,
   TradeRepublicAPI,
   Transaction,
   TransactionDetailsResponse,
@@ -124,11 +124,11 @@ export async function getTransactions(): Promise<Transaction[]> {
             let sectionTransactionId: string | undefined;
             transactionDetailsResponse.sections.forEach((section) => {
               if (
-                (section as SupportSection).data?.[0]?.detail?.action?.payload
+                (section as TableSection).data?.[0]?.detail?.action?.payload
                   ?.contextParams?.timelineEventId
               ) {
-                sectionTransactionId = (section as SupportSection).data[0]
-                  .detail.action.payload.contextParams.timelineEventId;
+                sectionTransactionId = (section as TableSection).data?.[0]
+                  ?.detail?.action?.payload?.contextParams?.timelineEventId;
               }
             });
 
