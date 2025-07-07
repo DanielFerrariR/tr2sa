@@ -5,7 +5,6 @@ import {
   Transaction,
   TRANSATION_EVENT_TYPE,
 } from '../../tradeRepublic';
-import { formatDate } from '../../../utils';
 
 const OUTPUT_DIR = 'build';
 const FILENAME = 'snowball_transactions.csv';
@@ -41,15 +40,23 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
   csvRows.push(headers.join(','));
 
   data.forEach((item) => {
-    // Skip canceled transactions
-    if (item.status === 'CANCELED') return;
+    // Skip canceled, failed or card verification transactions
+    if (
+      item.status === 'CANCELED' &&
+      [
+        TRANSATION_EVENT_TYPE.CARD_FAILED_TRANSACTION,
+        TRANSATION_EVENT_TYPE.CARD_FAILED_VERIFICATION,
+        TRANSATION_EVENT_TYPE.CARD_SUCCESSFUL_VERIFICATION,
+      ].includes(item.eventType)
+    )
+      return;
 
     // Dividends
     if (
       item.eventType === TRANSATION_EVENT_TYPE.SSP_CORPORATE_ACTION_INVOICE_CASH
     ) {
       const event = 'Dividend';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.icon.split('/')[1];
       const exchange = '';
       const note = item.title;
@@ -106,7 +113,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       ].includes(item.eventType)
     ) {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.icon.split('/')[1];
       const exchange = '';
       const note = item.title;
@@ -164,7 +171,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     // Interest
     if (item.eventType === TRANSATION_EVENT_TYPE.INTEREST_PAYOUT) {
       const event = 'Cash_Gain';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
       const exchange = '';
       const note = item.title;
@@ -209,7 +216,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     // Fees (card order fees)
     if (item.eventType === TRANSATION_EVENT_TYPE.CARD_ORDER_BILLED) {
       const event = 'Fee';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = '';
       const exchange = '';
       const note = item.title;
@@ -245,7 +252,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       ].includes(item.eventType)
     ) {
       const event = item.amount.value > 0 ? 'Cash_Gain' : 'Cash_Expense';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
       const exchange = '';
       const note = item.title;
@@ -281,7 +288,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       ].includes(item.eventType)
     ) {
       const event = item.amount.value > 0 ? 'Cash_In' : 'Cash_Out';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
       const exchange = '';
       const note = item.title;
@@ -315,7 +322,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       ['Saving executed', 'Sell Order', 'Buy Order'].includes(item.subtitle)
     ) {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.icon.split('/')[1];
       const exchange = '';
       const note = item.title;
@@ -375,7 +382,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       item.subtitle === null
     ) {
       const event = 'Cash_Gain';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
       const exchange = '';
       const price = 1;
@@ -409,7 +416,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       item.subtitle === null
     ) {
       const event = item.amount.value > 0 ? 'Cash_In' : 'Cash_Out';
-      const date = formatDate(new Date(item.timestamp));
+      const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
       const exchange = '';
       const price = 1;
