@@ -206,6 +206,107 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       csvRows.push(row.map((field) => `"${field}"`).join(','));
     }
 
+    // Fees (card order fees)
+    if (item.eventType === TRANSATION_EVENT_TYPE.CARD_ORDER_BILLED) {
+      const event = 'Fee';
+      const date = formatDate(new Date(item.timestamp));
+      const symbol = '';
+      const exchange = '';
+      const note = item.title;
+      let price = 1;
+      let quantity = item.amount.value;
+      let currency = item.amount.currency;
+      let feeTax = '';
+      let feeCurrency = '';
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
+    // Payments, refunds, tax corrections, send stock gifts
+    if (
+      [
+        TRANSATION_EVENT_TYPE.CARD_SUCCESSFUL_TRANSACTION,
+        TRANSATION_EVENT_TYPE.CARD_REFUND,
+        TRANSATION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE,
+        TRANSATION_EVENT_TYPE.GIFTER_TRANSACTION,
+      ].includes(item.eventType)
+    ) {
+      const event = item.amount.value > 0 ? 'Cash_Gain' : 'Cash_Expense';
+      const date = formatDate(new Date(item.timestamp));
+      const symbol = item.amount.currency;
+      const exchange = '';
+      const note = item.title;
+      let price = 1;
+      let quantity = item.amount.value;
+      let currency = item.amount.currency;
+      let feeTax = '';
+      let feeCurrency = '';
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
+    // Transactions
+    if (
+      [
+        TRANSATION_EVENT_TYPE.INCOMING_TRANSFER_DELEGATION,
+        TRANSATION_EVENT_TYPE.OUTGOING_TRANSFER_DELEGATION,
+        TRANSATION_EVENT_TYPE.OUTGOING_TRANSFER,
+        TRANSATION_EVENT_TYPE.INCOMING_TRANSFER,
+      ].includes(item.eventType)
+    ) {
+      const event = item.amount.value > 0 ? 'Cash_In' : 'Cash_Out';
+      const date = formatDate(new Date(item.timestamp));
+      const symbol = item.amount.currency;
+      const exchange = '';
+      const note = item.title;
+      let price = 1;
+      let quantity = item.amount.value;
+      let currency = item.amount.currency;
+      let feeTax = '';
+      let feeCurrency = '';
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
     // Legacy transactions (trades, savings plans)
     if (
       item.eventType ===

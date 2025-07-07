@@ -2,28 +2,20 @@
 
 This library only purpose is to generate a CSV file for Snowball Analytics.
 
-Currently supported transactions:
+Currently supported transactions (it's completed):
 
 - trades
 - savings plans
 - roundups
 - 15 euros per month bonus
 - dividends
-- interest
-- transfers (in progress, partially done)
-
-Missing
-
-- Some cash related transactions events (transfers, tax correction, refunds, payments)
-  - INCOMING_TRANSFER_DELEGATION // incoming transfer delegation
-  - card_successful_transaction // card successful transaction
-  - OUTGOING_TRANSFER_DELEGATION // outgoing transfer delegation
-  - card_refund // card refund
-  - ssp_tax_correction_invoice // tax correction
-  - OUTGOING_TRANSFER // outgoing transfer
-  - INCOMING_TRANSFER // income transfer
-  - card_order_billed // money spend in a new Trade Republic card
-  - GIFTER_TRANSACTION // Send stock gift to a friend
+- interests
+- transfers
+- payments and refunds
+- tax corrections
+- send stock gifts
+- fees (card order fees)
+- received stock gift (there is no transaction data for this one, so needs to be added manually)
 
 ## What is currently supported
 
