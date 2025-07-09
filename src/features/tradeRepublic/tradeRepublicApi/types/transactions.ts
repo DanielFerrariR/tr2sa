@@ -1,14 +1,14 @@
 import { TRANSATION_EVENT_TYPE } from '../../tradeRepublicApi/constants';
 
-export interface Action {
+export interface TransactionAction {
   type: string;
   payload: any;
   overrideAction?: any;
 }
 
-export interface Detail {
+export interface TransactionDetail {
   text?: string;
-  action?: Action;
+  action?: TransactionAction;
   type: string;
   icon?: string;
   style?: string;
@@ -32,16 +32,16 @@ export interface Detail {
   };
 }
 
-export interface DataObject {
+export interface TransactionDataObject {
   title: string;
-  detail: Detail;
+  detail: TransactionDetail;
   style: string;
-  action?: Action;
+  action?: TransactionAction;
   id?: string;
   postboxType?: string;
 }
 
-export interface HeaderSection {
+export interface TransactionHeaderSection {
   title: string;
   data: {
     icon: string;
@@ -50,23 +50,23 @@ export interface HeaderSection {
     subtitleText?: string | null;
   };
   type: 'header';
-  action?: Action;
+  action?: TransactionAction;
 }
 
-export interface TableSection {
+export interface TransactionTableSection {
   title?: string;
-  data: DataObject[];
+  data: TransactionDataObject[];
   type: 'table';
 }
 
-export interface NoteSection {
+export interface TransactionNoteSection {
   data: {
     text: string;
   };
   type: 'note';
 }
 
-export interface Step {
+export interface TransactionStep {
   leading: {
     avatar: {
       status: string;
@@ -84,58 +84,59 @@ export interface Step {
   };
 }
 
-export interface StepsSection {
+export interface TransactionStepsSection {
   title: string;
-  steps: Step[];
+  steps: TransactionStep[];
   type: 'steps';
 }
 
-export interface Document {
+export interface TransactionDocument {
   title: string;
-  action: Action;
+  action: TransactionAction;
   id: string;
   postboxType: string;
   detail?: null;
 }
 
-export interface DocumentsSection {
+export interface TransactionDocumentsSection {
   title: string;
   data: Document[];
   type: 'documents';
 }
 
-export interface BannerSection {
+export interface TransactionBannerSection {
   title: string;
   description: string;
   type: 'banner';
   actionableTitle?: {
     title: string;
-    action: Action;
+    action: TransactionAction;
   };
   button?: {
     title: string;
-    action: Action;
+    action: TransactionAction;
   };
 }
 
-export type Section =
-  | HeaderSection
-  | TableSection
-  | NoteSection
-  | StepsSection
-  | DocumentsSection
-  | BannerSection;
+export type TransactionSection =
+  | TransactionHeaderSection
+  | TransactionTableSection
+  | TransactionNoteSection
+  | TransactionStepsSection
+  | TransactionDocumentsSection
+  | TransactionBannerSection;
 
 export interface TransactionDetailsResponse {
   id: string;
-  sections: Section[];
+  sections: TransactionSection[];
 }
 
-export interface Amount {
+export interface TransactionAmount {
   currency: string;
   value: number;
   fractionDigits: number;
 }
+
 export interface Transaction {
   id: string;
   timestamp: string;
@@ -143,15 +144,15 @@ export interface Transaction {
   icon: string;
   badge: any;
   subtitle: string | null;
-  amount: Amount;
+  amount: TransactionAmount;
   subAmount: any;
   status: string;
-  action: Action;
+  action: TransactionAction;
   eventType: TRANSATION_EVENT_TYPE;
   cashAccountNumber: string | null;
   hidden: boolean;
   deleted: boolean;
-  sections?: Section[]; // Added later to the transaction
+  sections?: TransactionSection[]; // Added later to the transaction
 }
 
 export interface TransactionResponse {

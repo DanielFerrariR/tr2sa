@@ -8,6 +8,7 @@ export const CONNECTION_MESSAGE =
 export enum SUBSCRIPTION_TYPES {
   'TRANSACTIONS' = 'timelineTransactions', // Transactions
   'TRANSACTION_DETAILS' = 'timelineDetailV2', // Additional details for a specific transaction
+  'ACTIVITY_LOG' = 'timelineActivityLog', // The list of activities
 }
 
 export const CONNECTION_STATUS = {

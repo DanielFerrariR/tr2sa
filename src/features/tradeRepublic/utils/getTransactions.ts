@@ -3,7 +3,7 @@ import path from 'path';
 import {
   RECEIVED_COMMAND_TYPES,
   SUBSCRIPTION_TYPES,
-  TableSection,
+  TransactionTableSection,
   TradeRepublicAPI,
   Transaction,
   TransactionDetailsResponse,
@@ -98,15 +98,11 @@ export async function getTransactions(): Promise<Transaction[]> {
               for (const transaction of allItems) {
                 transactionsToFetchDetailsFor.add(transaction.id);
               }
-              const getTransactionDetails = async () => {
-                for (const transaction of allItems) {
-                  TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
-                    transaction.id,
-                  );
-                  new Promise((resolve) => setTimeout(resolve, 200));
-                }
-              };
-              getTransactionDetails();
+              for (const transaction of allItems) {
+                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
+                  transaction.id,
+                );
+              }
             }
           } catch (error) {
             console.error('Error processing transaction message:', message);
@@ -124,11 +120,12 @@ export async function getTransactions(): Promise<Transaction[]> {
             let sectionTransactionId: string | undefined;
             transactionDetailsResponse.sections.forEach((section) => {
               if (
-                (section as TableSection).data?.[0]?.detail?.action?.payload
-                  ?.contextParams?.timelineEventId
+                (section as TransactionTableSection).data?.[0]?.detail?.action
+                  ?.payload?.contextParams?.timelineEventId
               ) {
-                sectionTransactionId = (section as TableSection).data?.[0]
-                  ?.detail?.action?.payload?.contextParams?.timelineEventId;
+                sectionTransactionId = (section as TransactionTableSection)
+                  .data?.[0]?.detail?.action?.payload?.contextParams
+                  ?.timelineEventId;
               }
             });
 

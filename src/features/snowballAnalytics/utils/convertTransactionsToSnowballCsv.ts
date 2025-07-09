@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import {
-  TableSection,
+  TransactionTableSection,
   Transaction,
   TRANSATION_EVENT_TYPE,
 } from '../../tradeRepublic';
@@ -40,16 +40,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
   csvRows.push(headers.join(','));
 
   data.forEach((item) => {
-    // Skip canceled, failed or card verification transactions
-    if (
-      item.status === 'CANCELED' &&
-      [
-        TRANSATION_EVENT_TYPE.CARD_FAILED_TRANSACTION,
-        TRANSATION_EVENT_TYPE.CARD_FAILED_VERIFICATION,
-        TRANSATION_EVENT_TYPE.CARD_SUCCESSFUL_VERIFICATION,
-      ].includes(item.eventType)
-    )
-      return;
+    if (item.status === 'CANCELED') return;
 
     // Dividends
     if (
@@ -68,7 +59,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
-          const tableSection = section as TableSection;
+          const tableSection = section as TransactionTableSection;
           const SharesSubsection = tableSection.data.find(
             (subSection) => subSection.title === 'Shares',
           );
@@ -125,7 +116,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Overview') {
-          const tableSection = section as TableSection;
+          const tableSection = section as TransactionTableSection;
           const transactionSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Transaction',
           );
@@ -183,7 +174,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
-          const tableSection = section as TableSection;
+          const tableSection = section as TransactionTableSection;
           const accruedSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Accrued',
           );
@@ -213,81 +204,13 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       csvRows.push(row.map((field) => `"${field}"`).join(','));
     }
 
-    // Fees (card order fees)
-    if (item.eventType === TRANSATION_EVENT_TYPE.CARD_ORDER_BILLED) {
-      const event = 'Fee';
-      const date = item.timestamp.slice(0, 10);
-      const symbol = '';
-      const exchange = '';
-      const note = item.title;
-      const price = 0;
-      const quantity = 0;
-      const currency = item.amount.currency;
-      const feeTax = Math.abs(item.amount.value);
-      const feeCurrency = item.amount.currency;
-
-      const row = [
-        event,
-        date,
-        symbol,
-        price,
-        quantity,
-        currency,
-        feeTax,
-        exchange,
-        feeCurrency,
-        note,
-      ];
-
-      csvRows.push(row.map((field) => `"${field}"`).join(','));
-    }
-
-    // Payments, refunds, tax corrections, send stock gifts
+    // tax corrections
     if (
-      [
-        TRANSATION_EVENT_TYPE.CARD_SUCCESSFUL_TRANSACTION,
-        TRANSATION_EVENT_TYPE.CARD_REFUND,
-        TRANSATION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE,
-        TRANSATION_EVENT_TYPE.GIFTER_TRANSACTION,
-      ].includes(item.eventType)
+      [TRANSATION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE].includes(
+        item.eventType,
+      )
     ) {
       const event = item.amount.value > 0 ? 'Cash_Gain' : 'Cash_Expense';
-      const date = item.timestamp.slice(0, 10);
-      const symbol = item.amount.currency;
-      const exchange = '';
-      const note = item.title;
-      const price = 1;
-      const quantity = Math.abs(item.amount.value);
-      const currency = item.amount.currency;
-      const feeTax = '';
-      const feeCurrency = '';
-
-      const row = [
-        event,
-        date,
-        symbol,
-        price,
-        quantity,
-        currency,
-        feeTax,
-        exchange,
-        feeCurrency,
-        note,
-      ];
-
-      csvRows.push(row.map((field) => `"${field}"`).join(','));
-    }
-
-    // Transactions
-    if (
-      [
-        TRANSATION_EVENT_TYPE.INCOMING_TRANSFER_DELEGATION,
-        TRANSATION_EVENT_TYPE.OUTGOING_TRANSFER_DELEGATION,
-        TRANSATION_EVENT_TYPE.OUTGOING_TRANSFER,
-        TRANSATION_EVENT_TYPE.INCOMING_TRANSFER,
-      ].includes(item.eventType)
-    ) {
-      const event = item.amount.value > 0 ? 'Cash_In' : 'Cash_Out';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
       const exchange = '';
@@ -334,7 +257,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
-          const tableSection = section as TableSection;
+          const tableSection = section as TransactionTableSection;
           const sharesSubsection = tableSection.data.find(
             (subSection) => subSection.title === 'Shares',
           );
@@ -387,40 +310,6 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const exchange = '';
       const price = 1;
       const quantity = item.amount.value;
-      const currency = item.amount.currency;
-      const feeTax = '';
-      const feeCurrency = '';
-      const note = item.title;
-
-      const row = [
-        event,
-        date,
-        symbol,
-        price,
-        quantity,
-        currency,
-        feeTax,
-        exchange,
-        feeCurrency,
-        note,
-      ];
-
-      csvRows.push(row.map((field) => `"${field}"`).join(','));
-    }
-
-    // Legacy transactions (Transfers)
-    if (
-      item.eventType ===
-        TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
-      item.title !== 'Interest' &&
-      item.subtitle === null
-    ) {
-      const event = item.amount.value > 0 ? 'Cash_In' : 'Cash_Out';
-      const date = item.timestamp.slice(0, 10);
-      const symbol = item.amount.currency;
-      const exchange = '';
-      const price = 1;
-      const quantity = Math.abs(item.amount.value);
       const currency = item.amount.currency;
       const feeTax = '';
       const feeCurrency = '';
