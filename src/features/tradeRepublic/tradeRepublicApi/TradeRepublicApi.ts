@@ -18,7 +18,7 @@ export class TradeRepublicAPI {
   private _webSocket: WebSocket | undefined;
   private _sessionToken: string | undefined;
   private _subscriptionId = 1;
-  private _subscriptions: { [key: number]: SUBSCRIPTION_TYPES } = {};
+  private _subscriptions: { [key: number]: any } = {};
 
   private constructor() {
     this._cookieJar = new CookieJar();
@@ -74,7 +74,26 @@ export class TradeRepublicAPI {
     this._webSocket.send(
       `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
     );
-    this._subscriptions[this._subscriptionId] = SUBSCRIPTION_TYPES.TRANSACTIONS;
+    this._subscriptions[this._subscriptionId] = jsonPayload;
+    this._subscriptionId++;
+  }
+
+  public sendActivitiesMessage(after?: string) {
+    if (!this._webSocket) {
+      console.warn('WebSocket is not connected.');
+      return;
+    }
+
+    const jsonPayload = {
+      type: SUBSCRIPTION_TYPES.ACTIVITIES,
+      after,
+      token: this._sessionToken,
+    };
+
+    this._webSocket.send(
+      `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
+    );
+    this._subscriptions[this._subscriptionId] = jsonPayload;
     this._subscriptionId++;
   }
 
@@ -93,8 +112,7 @@ export class TradeRepublicAPI {
     this._webSocket.send(
       `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
     );
-    this._subscriptions[this._subscriptionId] =
-      SUBSCRIPTION_TYPES.TRANSACTION_DETAILS;
+    this._subscriptions[this._subscriptionId] = jsonPayload;
     this._subscriptionId++;
   }
 
@@ -133,10 +151,9 @@ export class TradeRepublicAPI {
       }
 
       onMessage?.(message, {
-        subscriptionId,
         command,
         jsonPayload,
-        subscriptionType: this._subscriptions[Number(subscriptionId)],
+        subscription: this._subscriptions[Number(subscriptionId)],
       });
     };
 

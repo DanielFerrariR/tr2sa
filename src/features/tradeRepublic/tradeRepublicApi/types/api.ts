@@ -1,5 +1,4 @@
 import { CloseEvent, ErrorEvent } from 'ws';
-import { SUBSCRIPTION_TYPES } from '../constants';
 
 export type LoginPayload = {
   phoneNumber: string;
@@ -12,10 +11,9 @@ export type VerifySmsPinPayload = {
 };
 
 type SplitMessage<PayloadType = any> = {
-  subscriptionId: string;
   command: string;
   jsonPayload?: PayloadType;
-  subscriptionType?: SUBSCRIPTION_TYPES;
+  subscription?: any;
 };
 
 export type ConnectOptions = {

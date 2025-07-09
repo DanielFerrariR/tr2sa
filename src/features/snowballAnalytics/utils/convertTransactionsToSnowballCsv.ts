@@ -4,6 +4,7 @@ import {
   TransactionTableSection,
   Transaction,
   TRANSATION_EVENT_TYPE,
+  TransactionHeaderSection,
 } from '../../tradeRepublic';
 
 const OUTPUT_DIR = 'build';
@@ -75,6 +76,54 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
             signToCurrency[dividendPerShareSubsction?.detail?.text?.[0]!];
           feeTax = feeSubSection?.detail?.text?.slice(1);
           feeCurrency = signToCurrency[feeSubSection?.detail?.text?.[0]!];
+        }
+      });
+
+      const row = [
+        event,
+        date,
+        symbol,
+        price,
+        quantity,
+        currency,
+        feeTax,
+        exchange,
+        feeCurrency,
+        note,
+      ];
+
+      csvRows.push(row.map((field) => `"${field}"`).join(','));
+    }
+
+    // Received stock gifts
+    if (item.eventType === TRANSATION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY) {
+      const event = 'Buy';
+      const date = item.timestamp.slice(0, 10);
+      const exchange = '';
+      const note = item.title;
+      const feeTax = '';
+      const feeCurrency = '';
+      let symbol: string | undefined;
+      let price: string | undefined;
+      let quantity: string | undefined;
+      let currency: string | undefined;
+
+      item.sections?.forEach((section) => {
+        if ('title' in section && section.title === 'You accepted your gift') {
+          const headerSection = section as TransactionHeaderSection;
+          symbol = headerSection?.data?.icon?.split('/')[1];
+        }
+        if ('title' in section && section.title === 'Overview') {
+          const tableSection = section as TransactionTableSection;
+          const sharesSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Shares',
+          );
+          const sharesPriceSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Share price',
+          );
+          price = sharesPriceSubSection?.detail?.text?.slice(1);
+          quantity = sharesSubSection?.detail?.text;
+          currency = signToCurrency[sharesPriceSubSection?.detail?.text?.[0]!];
         }
       });
 

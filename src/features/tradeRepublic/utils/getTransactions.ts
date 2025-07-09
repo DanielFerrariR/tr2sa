@@ -8,18 +8,24 @@ import {
   Transaction,
   TransactionDetailsResponse,
   TransactionResponse,
+  Activity,
+  ActivityResponse,
+  ACTIVITY_EVENT_TYPE,
+  TRANSATION_EVENT_TYPE,
 } from '../tradeRepublicApi';
 
 const OUTPUT_DIR = 'build';
 const TRANSACTIONS_FILENAME = 'transactions.json';
+const ACTIVITIES_FILENAME = 'activities.json';
 const TRANSACTIONS_WITH_DETAILS_FILENAME = 'transactions_with_details.json';
 
 export async function getTransactions(): Promise<Transaction[]> {
   return new Promise((resolve, reject) => {
-    let allItems: Transaction[] = [];
+    let activities: Activity[] = [];
+    let transactions: Transaction[] = [];
     let transactionsToFetchDetailsFor: Set<string> = new Set();
 
-    const saveTransactions = (data: Transaction[], filename: string) => {
+    const saveFile = (data: any, filename: string) => {
       const filePath = path.join(process.cwd(), `${OUTPUT_DIR}/${filename}`);
 
       if (!fs.existsSync(OUTPUT_DIR))
@@ -46,31 +52,58 @@ export async function getTransactions(): Promise<Transaction[]> {
           console.log('\n--- WebSocket Ready ---');
           console.log('Starting automatic fetching of transactions...');
 
-          TradeRepublicAPI.getInstance().sendTransactionsMessage();
-          console.log('Sent initial transactions request.');
+          TradeRepublicAPI.getInstance().sendActivitiesMessage();
+          console.log('Sent initial activity request.');
         } catch (error) {
           console.error('Error during initial connection:', error);
           reject(error);
         }
       },
-      onMessage: (message, { command, jsonPayload, subscriptionType }) => {
+      onMessage: (message, { command, jsonPayload, subscription }) => {
         // We don't want to see logs of keep-alive messages
         if (command === RECEIVED_COMMAND_TYPES.KEEP_ALIVE) return;
 
-        // Just to debug because we don't expect any message that isn't a transaction,
+        // Just to debug because we don't expect any message that isn't a activity, transaction,
         // transactionDetails or keep-alive here
         if (!jsonPayload) {
           console.log(`Received message: ${message}`);
           return;
         }
 
-        if (subscriptionType === SUBSCRIPTION_TYPES.TRANSACTIONS) {
+        if (subscription.type === SUBSCRIPTION_TYPES.ACTIVITIES) {
+          try {
+            const activityResponse = jsonPayload as ActivityResponse;
+
+            activities = activities.concat(activityResponse.items);
+            console.log(
+              `Collected ${activityResponse.items.length} items. Total items: ${activities.length}`,
+            );
+
+            const afterCursor = activityResponse.cursors.after;
+            if (afterCursor) {
+              TradeRepublicAPI.getInstance().sendActivitiesMessage(afterCursor);
+              console.log(
+                `Sent next activities request with after: ${afterCursor}`,
+              );
+            } else {
+              console.log('All activities fetched.');
+              saveFile(activities, ACTIVITIES_FILENAME);
+              TradeRepublicAPI.getInstance().sendTransactionsMessage();
+              console.log('Sent initial transactions request.');
+            }
+          } catch (error) {
+            console.error('Error processing transaction message:', message);
+            reject(error);
+          }
+        }
+
+        if (subscription.type === SUBSCRIPTION_TYPES.TRANSACTIONS) {
           try {
             const transactionResponse = jsonPayload as TransactionResponse;
 
-            allItems = allItems.concat(transactionResponse.items);
+            transactions.push(...transactionResponse.items);
             console.log(
-              `Collected ${transactionResponse.items.length} items. Total items: ${allItems.length}`,
+              `Collected ${transactionResponse.items.length} items. Total items: ${transactions.length}`,
             );
 
             const afterCursor = transactionResponse.cursors.after;
@@ -83,22 +116,48 @@ export async function getTransactions(): Promise<Transaction[]> {
               );
             } else {
               console.log('All transactions fetched.');
-              saveTransactions(allItems, TRANSACTIONS_FILENAME);
 
-              if (allItems.length === 0) {
-                console.log(
-                  'No transactions found. Exiting without fetching details.',
-                );
-                TradeRepublicAPI.getInstance().disconnect();
-                resolve(allItems);
-                return;
-              }
+              // Adding fake received gift transactions from activities as transactions list doesn't include received gifts
+              const giftTransactions: Transaction[] = activities
+                .filter(
+                  (activity) =>
+                    activity.eventType ===
+                    ACTIVITY_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
+                )
+                .map((activity) => ({
+                  id: activity.id,
+                  timestamp: activity.timestamp,
+                  title: activity.title,
+                  icon: activity.icon,
+                  badge: null,
+                  subtitle: activity.subtitle,
+                  amount: {
+                    currency: 'EUR',
+                    value: 0,
+                    fractionDigits: 2,
+                  },
+                  subAmount: null,
+                  status: 'EXECUTED',
+                  action: {
+                    type: 'timelineDetail',
+                    payload: activity.id,
+                  },
+                  eventType: TRANSATION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
+                  cashAccountNumber: null,
+                  hidden: false,
+                  deleted: false,
+                }));
+              transactions.push(...giftTransactions);
+              console.log(
+                `Added ${giftTransactions.length} received gifts to the transactions. Total items: ${transactions.length}`,
+              );
 
+              saveFile(transactions, TRANSACTIONS_FILENAME);
               console.log('Starting to fetch details for each transaction.');
-              for (const transaction of allItems) {
+              for (const transaction of transactions) {
                 transactionsToFetchDetailsFor.add(transaction.id);
               }
-              for (const transaction of allItems) {
+              for (const transaction of transactions) {
                 TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
                   transaction.id,
                 );
@@ -110,41 +169,22 @@ export async function getTransactions(): Promise<Transaction[]> {
           }
         }
 
-        if (subscriptionType === SUBSCRIPTION_TYPES.TRANSACTION_DETAILS) {
+        if (subscription.type === SUBSCRIPTION_TYPES.TRANSACTION_DETAILS) {
           try {
             const transactionDetailsResponse =
               jsonPayload as TransactionDetailsResponse;
 
-            // Somestimes the transactionId doesn't match the transactionDetailsId (not sure why)
-            // So we need to find the transactionId in the support section
-            let sectionTransactionId: string | undefined;
-            transactionDetailsResponse.sections.forEach((section) => {
-              if (
-                (section as TransactionTableSection).data?.[0]?.detail?.action
-                  ?.payload?.contextParams?.timelineEventId
-              ) {
-                sectionTransactionId = (section as TransactionTableSection)
-                  .data?.[0]?.detail?.action?.payload?.contextParams
-                  ?.timelineEventId;
-              }
-            });
-
-            let transactionId = jsonPayload.id;
-            const transactionIndex = allItems.findIndex((item) => {
-              if (item.id === sectionTransactionId) {
-                transactionId = sectionTransactionId;
-                return true;
-              }
-              return item.id === jsonPayload.id;
-            });
+            const transactionIndex = transactions.findIndex(
+              (item) => item.id === subscription.id,
+            );
 
             if (transactionIndex !== -1) {
-              allItems[transactionIndex].sections =
+              transactions[transactionIndex].sections =
                 transactionDetailsResponse.sections;
               console.log(
-                `Attached sections for transaction ID: ${transactionId}`,
+                `Attached sections for transaction ID: ${subscription.id}`,
               );
-              transactionsToFetchDetailsFor.delete(transactionId);
+              transactionsToFetchDetailsFor.delete(subscription.id);
 
               console.log(
                 `transactionsToFetchDetailsFor current size: ${transactionsToFetchDetailsFor.size}`,
@@ -152,13 +192,13 @@ export async function getTransactions(): Promise<Transaction[]> {
 
               if (transactionsToFetchDetailsFor.size === 0) {
                 console.log('All transaction details fetched.');
-                saveTransactions(allItems, TRANSACTIONS_WITH_DETAILS_FILENAME);
+                saveFile(transactions, TRANSACTIONS_WITH_DETAILS_FILENAME);
                 TradeRepublicAPI.getInstance().disconnect();
-                resolve(allItems);
+                resolve(transactions);
               }
             } else {
               console.warn(
-                `Received details for unknown transaction ID: ${transactionId}`,
+                `Received details for unknown transaction ID: ${subscription.id}`,
               );
             }
           } catch (error) {
