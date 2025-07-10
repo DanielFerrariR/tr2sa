@@ -254,11 +254,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     }
 
     // tax corrections
-    if (
-      [TRANSATION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE].includes(
-        item.eventType,
-      )
-    ) {
+    if (item.eventType === TRANSATION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE) {
       const event = item.amount.value > 0 ? 'Cash_Gain' : 'Cash_Expense';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
