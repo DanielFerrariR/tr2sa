@@ -1,4 +1,4 @@
-# tr2sa_cli: Convert Trade Republic Transactions History to Snowball Analytics CSV
+# tr2sa: Convert Trade Republic Transactions History to Snowball Analytics CSV
 
 This library only purpose is to generate a CSV file for Snowball Analytics.
 
@@ -12,6 +12,12 @@ Currently supported transactions:
 - interests
 - tax corrections
 - received stock gift
+
+## How to import cash?
+
+Currently, cash isn't supported (as TR is also a bank, the account movements can make Snowball Analytics data get messy, which isn't the purpose of this library).
+
+If you want to import your cash balance change your portfolio accounting to 'Current Balance' and add the value manually at https://snowball-analytics.com/cash
 
 ## What is currently supported
 
