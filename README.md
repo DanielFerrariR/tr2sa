@@ -1,6 +1,6 @@
 # tr2sa: Convert Trade Republic Transactions History to Snowball Analytics CSV
 
-This library only purpose is to generate a CSV file for Snowball Analytics.
+This library only purpose is to generate a CSV file for Snowball Analytics. It is not affiliated with Trade Republic Bank GmbH.
 
 Currently supported transactions:
 
