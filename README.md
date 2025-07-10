@@ -1,4 +1,4 @@
-# tr2sa: Convert Trade Republic Transactions History to Snowball Analytics CSV
+# tr2sa_cli: Convert Trade Republic Transactions History to Snowball Analytics CSV
 
 This library only purpose is to generate a CSV file for Snowball Analytics.
 
