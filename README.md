@@ -39,3 +39,8 @@ If you want to import your cash balance change your portfolio accounting to 'Cur
 3 - Create a .env file (check .env.example)
 
 4 - npm run cli
+
+## Tip
+
+If you liked this project and want me to keep it updated. Consider to tip any amount to:
+https://streamlabs.com/danielferrarir/tip
