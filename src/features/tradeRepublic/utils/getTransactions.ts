@@ -1,9 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import { saveFile } from '../../../utils';
 import {
   RECEIVED_COMMAND_TYPES,
   SUBSCRIPTION_TYPES,
-  TransactionTableSection,
   TradeRepublicAPI,
   Transaction,
   TransactionDetailsResponse,
@@ -11,36 +9,19 @@ import {
   Activity,
   ActivityResponse,
   ACTIVITY_EVENT_TYPE,
-  TRANSATION_EVENT_TYPE,
+  TRANSACTION_EVENT_TYPE,
 } from '../tradeRepublicApi';
 
-const OUTPUT_DIR = 'build';
-const TRANSACTIONS_FILENAME = 'transactions.json';
-const ACTIVITIES_FILENAME = 'activities.json';
-const TRANSACTIONS_WITH_DETAILS_FILENAME = 'transactions_with_details.json';
+const OUTPUT_DIRECTORY = 'build';
+const TRANSACTIONS_FILE_NAME = 'transactions.json';
+const ACTIVITIES_FILE_NAME = 'activities.json';
+const TRANSACTIONS_WITH_DETAILS_FILE_NAME = 'transactions_with_details.json';
 
 export async function getTransactions(): Promise<Transaction[]> {
   return new Promise((resolve, reject) => {
     let activities: Activity[] = [];
     let transactions: Transaction[] = [];
     let transactionsToFetchDetailsFor: Set<string> = new Set();
-
-    const saveFile = (data: any, filename: string) => {
-      const filePath = path.join(process.cwd(), `${OUTPUT_DIR}/${filename}`);
-
-      if (!fs.existsSync(OUTPUT_DIR))
-        fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-
-      fs.writeFile(filePath, JSON.stringify(data, null, 2), (error) => {
-        if (error) {
-          console.error(`Error saving JSON file "${filename}".`, error);
-        } else {
-          console.log(
-            `JSON file "${filename}" successfully saved to ${filePath}.`,
-          );
-        }
-      });
-    };
 
     TradeRepublicAPI.getInstance().connect({
       onOpen: () => {
@@ -73,21 +54,17 @@ export async function getTransactions(): Promise<Transaction[]> {
         if (subscription.type === SUBSCRIPTION_TYPES.ACTIVITIES) {
           try {
             const activityResponse = jsonPayload as ActivityResponse;
-
             activities = activities.concat(activityResponse.items);
-            console.log(
-              `Collected ${activityResponse.items.length} items. Total items: ${activities.length}`,
-            );
-
             const afterCursor = activityResponse.cursors.after;
             if (afterCursor) {
               TradeRepublicAPI.getInstance().sendActivitiesMessage(afterCursor);
-              console.log(
-                `Sent next activities request with after: ${afterCursor}`,
-              );
             } else {
               console.log('All activities fetched.');
-              saveFile(activities, ACTIVITIES_FILENAME);
+              saveFile(
+                JSON.stringify(activities, null, 2),
+                ACTIVITIES_FILE_NAME,
+                OUTPUT_DIRECTORY,
+              );
               TradeRepublicAPI.getInstance().sendTransactionsMessage();
               console.log('Sent initial transactions request.');
             }
@@ -100,19 +77,11 @@ export async function getTransactions(): Promise<Transaction[]> {
         if (subscription.type === SUBSCRIPTION_TYPES.TRANSACTIONS) {
           try {
             const transactionResponse = jsonPayload as TransactionResponse;
-
             transactions.push(...transactionResponse.items);
-            console.log(
-              `Collected ${transactionResponse.items.length} items. Total items: ${transactions.length}`,
-            );
-
             const afterCursor = transactionResponse.cursors.after;
             if (afterCursor) {
               TradeRepublicAPI.getInstance().sendTransactionsMessage(
                 afterCursor,
-              );
-              console.log(
-                `Sent next transactions request with after: ${afterCursor}`,
               );
             } else {
               console.log('All transactions fetched.');
@@ -142,17 +111,18 @@ export async function getTransactions(): Promise<Transaction[]> {
                     type: 'timelineDetail',
                     payload: activity.id,
                   },
-                  eventType: TRANSATION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
+                  eventType: TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
                   cashAccountNumber: null,
                   hidden: false,
                   deleted: false,
                 }));
               transactions.push(...giftTransactions);
-              console.log(
-                `Added ${giftTransactions.length} received gifts to the transactions. Total items: ${transactions.length}`,
-              );
 
-              saveFile(transactions, TRANSACTIONS_FILENAME);
+              saveFile(
+                JSON.stringify(transactions, null, 2),
+                TRANSACTIONS_FILE_NAME,
+                OUTPUT_DIRECTORY,
+              );
               console.log('Starting to fetch details for each transaction.');
               for (const transaction of transactions) {
                 transactionsToFetchDetailsFor.add(transaction.id);
@@ -181,18 +151,15 @@ export async function getTransactions(): Promise<Transaction[]> {
             if (transactionIndex !== -1) {
               transactions[transactionIndex].sections =
                 transactionDetailsResponse.sections;
-              console.log(
-                `Attached sections for transaction ID: ${subscription.id}`,
-              );
               transactionsToFetchDetailsFor.delete(subscription.id);
-
-              console.log(
-                `transactionsToFetchDetailsFor current size: ${transactionsToFetchDetailsFor.size}`,
-              );
 
               if (transactionsToFetchDetailsFor.size === 0) {
                 console.log('All transaction details fetched.');
-                saveFile(transactions, TRANSACTIONS_WITH_DETAILS_FILENAME);
+                saveFile(
+                  JSON.stringify(transactions, null, 2),
+                  TRANSACTIONS_WITH_DETAILS_FILE_NAME,
+                  OUTPUT_DIRECTORY,
+                );
                 TradeRepublicAPI.getInstance().disconnect();
                 resolve(transactions);
               }

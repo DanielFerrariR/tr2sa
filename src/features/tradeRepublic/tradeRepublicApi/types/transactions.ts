@@ -1,4 +1,4 @@
-import { TRANSATION_EVENT_TYPE } from '../../tradeRepublicApi/constants';
+import { TRANSACTION_EVENT_TYPE } from '../../tradeRepublicApi/constants';
 
 export interface TransactionAction {
   type: string;
@@ -148,7 +148,7 @@ export interface Transaction {
   subAmount: any;
   status: string;
   action: TransactionAction;
-  eventType: TRANSATION_EVENT_TYPE;
+  eventType: TRANSACTION_EVENT_TYPE;
   cashAccountNumber: string | null;
   hidden: boolean;
   deleted: boolean;

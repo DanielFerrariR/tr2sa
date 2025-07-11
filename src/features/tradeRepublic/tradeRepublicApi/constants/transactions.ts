@@ -1,4 +1,4 @@
-export enum TRANSATION_EVENT_TYPE {
+export enum TRANSACTION_EVENT_TYPE {
   INCOMING_TRANSFER_DELEGATION = 'INCOMING_TRANSFER_DELEGATION', // incoming transfer delegation
   CARD_SUCCESSFUL_TRANSACTION = 'card_successful_transaction', // card successful transaction
   CARD_FAILED_TRANSACTION = 'card_failed_transaction', // card failed transaction

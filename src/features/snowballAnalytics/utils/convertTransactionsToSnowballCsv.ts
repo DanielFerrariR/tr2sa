@@ -1,14 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import {
   TransactionTableSection,
   Transaction,
-  TRANSATION_EVENT_TYPE,
+  TRANSACTION_EVENT_TYPE,
   TransactionHeaderSection,
 } from '../../tradeRepublic';
+import { saveFile } from '../../../utils';
 
-const OUTPUT_DIR = 'build';
-const FILENAME = 'snowball_transactions.csv';
+const OUTPUT_DIRECTORY = 'build';
+const FILE_NAME = 'snowball_transactions.csv';
 
 const signToCurrency: any = {
   '€': 'EUR',
@@ -45,7 +44,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
 
     // Dividends
     if (
-      item.eventType === TRANSATION_EVENT_TYPE.SSP_CORPORATE_ACTION_INVOICE_CASH
+      item.eventType ===
+      TRANSACTION_EVENT_TYPE.SSP_CORPORATE_ACTION_INVOICE_CASH
     ) {
       const event = 'Dividend';
       const date = item.timestamp.slice(0, 10);
@@ -96,7 +96,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     }
 
     // Received stock gifts
-    if (item.eventType === TRANSATION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY) {
+    if (item.eventType === TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY) {
       const event = 'Buy';
       const date = item.timestamp.slice(0, 10);
       const exchange = '';
@@ -146,10 +146,10 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     // Buy and Sell transactions (trades, savings plans, roundups and 15 euros per month bonus)
     if (
       [
-        TRANSATION_EVENT_TYPE.TRADING_TRADE_EXECUTED,
-        TRANSATION_EVENT_TYPE.TRADING_SAVINGSPLAN_EXECUTED,
-        TRANSATION_EVENT_TYPE.BENEFITS_SPARE_CHANGE_EXECUTION,
-        TRANSATION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
+        TRANSACTION_EVENT_TYPE.TRADING_TRADE_EXECUTED,
+        TRANSACTION_EVENT_TYPE.TRADING_SAVINGSPLAN_EXECUTED,
+        TRANSACTION_EVENT_TYPE.BENEFITS_SPARE_CHANGE_EXECUTION,
+        TRANSACTION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
       ].includes(item.eventType)
     ) {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
@@ -209,7 +209,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     }
 
     // Interest
-    if (item.eventType === TRANSATION_EVENT_TYPE.INTEREST_PAYOUT) {
+    if (item.eventType === TRANSACTION_EVENT_TYPE.INTEREST_PAYOUT) {
       const event = 'Cash_Gain';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
@@ -254,7 +254,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     }
 
     // tax corrections
-    if (item.eventType === TRANSATION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE) {
+    if (item.eventType === TRANSACTION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE) {
       const event = item.amount.value > 0 ? 'Cash_Gain' : 'Cash_Expense';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.amount.currency;
@@ -285,7 +285,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     // Legacy transactions (trades, savings plans)
     if (
       item.eventType ===
-        TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
+        TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
       item.subtitle !== null &&
       ['Saving executed', 'Sell Order', 'Buy Order'].includes(item.subtitle)
     ) {
@@ -345,7 +345,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     // Legacy transactions (Interest)
     if (
       item.eventType ===
-        TRANSATION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
+        TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
       item.title === 'Interest' &&
       item.subtitle === null
     ) {
@@ -378,15 +378,5 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
   });
 
   const csvString = csvRows.join('\n');
-  const filePath = path.join(process.cwd(), `${OUTPUT_DIR}/${FILENAME}`);
-
-  if (!fs.existsSync('build')) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-
-  fs.writeFile(filePath, csvString, (error) => {
-    if (error) {
-      console.error(`Error saving CSV file "${FILENAME}".`, error);
-    } else {
-      console.log(`CSV file "${FILENAME}" successfully saved to ${filePath}.`);
-    }
-  });
+  saveFile(csvString, FILE_NAME, OUTPUT_DIRECTORY);
 };
