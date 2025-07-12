@@ -1,11 +1,11 @@
 import fs from 'fs';
 import inquirer from 'inquirer';
 import {
-  login,
+  convertTransactionsToSnowballCsv,
   getTransactions,
   interactiveSocketConnection,
-  convertTransactionsToSnowballCsv,
-} from './features';
+  login,
+} from './utils';
 
 const MENU_OPTIONS = {
   DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:

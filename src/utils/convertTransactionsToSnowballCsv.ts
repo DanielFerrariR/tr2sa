@@ -1,10 +1,10 @@
+import { TRANSACTION_EVENT_TYPE } from '../constants';
 import {
   TransactionTableSection,
   Transaction,
-  TRANSACTION_EVENT_TYPE,
   TransactionHeaderSection,
-} from '../../tradeRepublic';
-import { saveFile } from '../../../utils';
+} from '../types';
+import { saveFile } from './saveFile';
 
 const OUTPUT_DIRECTORY = 'build';
 const FILE_NAME = 'snowball_transactions.csv';

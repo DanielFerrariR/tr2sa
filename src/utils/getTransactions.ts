@@ -1,16 +1,18 @@
-import { saveFile } from '../../../utils';
+import { saveFile } from './saveFile';
 import {
-  RECEIVED_COMMAND_TYPES,
-  SUBSCRIPTION_TYPES,
-  TradeRepublicAPI,
   Transaction,
   TransactionDetailsResponse,
   TransactionResponse,
   Activity,
   ActivityResponse,
+} from '../types';
+import { TradeRepublicAPI } from '../api';
+import {
   ACTIVITY_EVENT_TYPE,
+  RECEIVED_COMMAND_TYPES,
+  SUBSCRIPTION_TYPES,
   TRANSACTION_EVENT_TYPE,
-} from '../tradeRepublicApi';
+} from '../constants';
 
 const OUTPUT_DIRECTORY = 'build';
 const TRANSACTIONS_FILE_NAME = 'transactions.json';

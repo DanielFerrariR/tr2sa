@@ -1,5 +1,6 @@
 import readline from 'readline';
-import { CONNECTION_STATUS, TradeRepublicAPI } from '../tradeRepublicApi';
+import { TradeRepublicAPI } from '../api';
+import { CONNECTION_STATUS } from '../constants';
 
 export const interactiveSocketConnection = (): void => {
   const readlineInterface = readline.createInterface({
