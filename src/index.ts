@@ -1,4 +1,3 @@
-require('dotenv').config(); // Needs to be at the top to load environment variables
 import fs from 'fs';
 import inquirer from 'inquirer';
 import {
@@ -9,11 +8,11 @@ import {
 } from './features';
 
 const MENU_OPTIONS = {
-  INTERACTIVE_SOCKET_CONNECTION: 'interactiveSocketConnection',
   DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:
     'downloadJSONAndConvertToSnowballCsv',
   IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:
     'importAndConvertToSnowballCsv',
+  INTERACTIVE_SOCKET_CONNECTION: 'interactiveSocketConnection',
 };
 
 async function main() {
@@ -24,10 +23,6 @@ async function main() {
       message: 'What would you like to do?',
       choices: [
         {
-          name: 'Connect to WebSocket (interact via prompt)',
-          value: MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION,
-        },
-        {
           name: 'Download JSON and convert it to Snowball CSV',
           value:
             MENU_OPTIONS.DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV,
@@ -36,16 +31,13 @@ async function main() {
           name: 'Import existing JSON and convert it to Snowball CSV',
           value: MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV,
         },
+        {
+          name: 'Connect to WebSocket (interact via prompt)',
+          value: MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION,
+        },
       ],
     },
   ]);
-
-  if (action === MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION) {
-    const wasLoginSuccessful = await login();
-    if (!wasLoginSuccessful) return;
-    interactiveSocketConnection();
-    return;
-  }
 
   if (
     action ===
@@ -78,6 +70,13 @@ async function main() {
     } catch (error) {
       console.error('Error converting to Snowball CSV:', error);
     }
+  }
+
+  if (action === MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION) {
+    const wasLoginSuccessful = await login();
+    if (!wasLoginSuccessful) return;
+    interactiveSocketConnection();
+    return;
   }
 }
 

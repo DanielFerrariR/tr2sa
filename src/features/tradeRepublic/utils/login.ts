@@ -4,13 +4,18 @@ import { TradeRepublicAPI } from '../tradeRepublicApi';
 export async function login(): Promise<boolean> {
   console.log('Starting Trade Republic login process...');
 
+  const phoneNumber = readlineSync.question(
+    'Please enter your telephone number (with country code, e.g., +491234567890): ',
+  );
+  const pin = readlineSync.question('Please enter your 4-digit PIN: ');
+
   let processId: string;
 
   try {
     console.log('Sending initial login request...');
     const response = await TradeRepublicAPI.getInstance().login({
-      phoneNumber: process.env.TELEPHONE!,
-      pin: process.env.PIN!,
+      phoneNumber,
+      pin,
     });
 
     if (response.data && response.data.processId) {

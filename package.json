@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Node API to communicate with Trade Republic",
   "scripts": {
-    "cli": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts"
   },
   "license": "ISC",
   "devDependencies": {
@@ -14,7 +14,6 @@
     "@types/ws": "^8.18.1",
     "axios": "^1.10.0",
     "axios-cookiejar-support": "^6.0.2",
-    "dotenv": "^17.0.1",
     "inquirer": "^12.7.0",
     "readline-sync": "^1.4.10",
     "tough-cookie": "^5.1.2",

@@ -32,13 +32,11 @@ If you want to import your cash balance change your portfolio accounting to 'Cur
 
 ## Steps
 
-1 - Install Node 20.19.0
+1 - Install Node 20.19.0 (use the exact version to avoid errors)
 
 2 - npm install
 
-3 - Create a .env file (check .env.example)
-
-4 - npm run cli
+3 - npm start
 
 ## Tip
 

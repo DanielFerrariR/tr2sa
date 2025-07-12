@@ -24,9 +24,9 @@ export const interactiveSocketConnection = (): void => {
       readlineInterface.prompt(true);
     },
     onMessage: (message) => {
-      console.log('Received WebSocket message:', message);
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
+      console.log('Received WebSocket message:', message);
       readlineInterface.prompt(true);
     },
     onClose: (event) => {
