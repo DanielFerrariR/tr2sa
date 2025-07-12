@@ -59,16 +59,21 @@ export class TradeRepublicAPI {
     )?.value;
   }
 
-  public sendTransactionsMessage(after?: string) {
+  public _sendSubscriptionMessage(
+    type: SUBSCRIPTION_TYPES,
+    after?: string,
+    transactionId?: string,
+  ) {
     if (!this._webSocket) {
       console.warn('WebSocket is not connected.');
       return;
     }
 
     const jsonPayload = {
-      type: SUBSCRIPTION_TYPES.TRANSACTIONS,
-      after,
+      type,
       token: this._sessionToken,
+      ...(after ? { after } : {}),
+      ...(transactionId ? { id: transactionId } : {}),
     };
 
     this._webSocket.send(
@@ -76,44 +81,22 @@ export class TradeRepublicAPI {
     );
     this._subscriptions[this._subscriptionId] = jsonPayload;
     this._subscriptionId++;
+  }
+
+  public sendTransactionsMessage(after?: string) {
+    this._sendSubscriptionMessage(SUBSCRIPTION_TYPES.TRANSACTIONS, after);
   }
 
   public sendActivitiesMessage(after?: string) {
-    if (!this._webSocket) {
-      console.warn('WebSocket is not connected.');
-      return;
-    }
-
-    const jsonPayload = {
-      type: SUBSCRIPTION_TYPES.ACTIVITIES,
-      after,
-      token: this._sessionToken,
-    };
-
-    this._webSocket.send(
-      `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
-    );
-    this._subscriptions[this._subscriptionId] = jsonPayload;
-    this._subscriptionId++;
+    this._sendSubscriptionMessage(SUBSCRIPTION_TYPES.ACTIVITIES, after);
   }
 
   public sendTransactionDetailsMessage(transactionId: string) {
-    if (!this._webSocket) {
-      console.warn('WebSocket is not connected.');
-      return;
-    }
-
-    const jsonPayload = {
-      type: SUBSCRIPTION_TYPES.TRANSACTION_DETAILS,
-      id: transactionId,
-      token: this._sessionToken,
-    };
-
-    this._webSocket.send(
-      `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`,
+    this._sendSubscriptionMessage(
+      SUBSCRIPTION_TYPES.TRANSACTION_DETAILS,
+      undefined,
+      transactionId,
     );
-    this._subscriptions[this._subscriptionId] = jsonPayload;
-    this._subscriptionId++;
   }
 
   public connect({
