@@ -50,7 +50,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const event = 'Dividend';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.icon.split('/')[1];
-      const exchange = '';
+      const exchange = 'F';
       const note = item.title;
       let price: string | undefined;
       let quantity: string | undefined;
@@ -99,7 +99,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
     if (item.eventType === TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY) {
       const event = 'Buy';
       const date = item.timestamp.slice(0, 10);
-      const exchange = '';
+      const exchange = 'F';
       const note = item.title;
       const feeTax = '';
       const feeCurrency = '';
@@ -155,7 +155,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.icon.split('/')[1];
-      const exchange = '';
+      const exchange = 'F';
       const note = item.title;
       let price: string | undefined;
       let quantity: string | undefined;
@@ -292,7 +292,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]) => {
       const event = item.amount.value < 0 ? 'Buy' : 'Sell';
       const date = item.timestamp.slice(0, 10);
       const symbol = item.icon.split('/')[1];
-      const exchange = '';
+      const exchange = 'F';
       const note = item.title;
       let price: string | undefined;
       let quantity: string | undefined;
