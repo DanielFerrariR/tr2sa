@@ -15,16 +15,15 @@ import {
   TRADE_REPUBLIC_WEBSOCKET_URL,
 } from '../constants';
 import WebSocket from 'ws';
-import { Dictionary } from '../../types';
 
 export class TradeRepublicAPI {
   private static instance: TradeRepublicAPI;
   private _cookieJar: CookieJar;
   private _client: AxiosInstance;
-  private _webSocket: WebSocket | undefined;
-  private _sessionToken: string | undefined;
+  private _webSocket?: WebSocket;
+  private _sessionToken?: string;
   private _subscriptionId = 1;
-  private _subscriptions: Dictionary<number, Subscription> = {};
+  private _subscriptions: Record<number, Subscription> = {};
 
   private constructor() {
     this._cookieJar = new CookieJar();
@@ -125,7 +124,7 @@ export class TradeRepublicAPI {
         return;
       }
 
-      let jsonPayload: Object | undefined;
+      let jsonPayload: object | undefined;
 
       const [subscriptionId, command] = message.split(' ', 2);
       let jsonMatch = message.match(/\{.*\}/s);

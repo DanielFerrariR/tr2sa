@@ -1,4 +1,3 @@
-import { Dictionary } from '../../types';
 import { TRANSACTION_EVENT_TYPE } from '../constants';
 import {
   TransactionTableSection,
@@ -10,7 +9,7 @@ import { saveFile } from './saveFile';
 const OUTPUT_DIRECTORY = 'build';
 const FILE_NAME = 'snowball_transactions.csv';
 
-const SIGN_TO_CURRENCY_MAP: Dictionary<string, string> = {
+const SIGN_TO_CURRENCY_MAP: Record<string, string> = {
   '€': 'EUR',
   $: 'USD',
   '£': 'GBP',

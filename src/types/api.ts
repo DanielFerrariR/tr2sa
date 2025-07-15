@@ -20,7 +20,7 @@ export interface Subscription {
 
 export interface SplitMessage {
   command: string;
-  jsonPayload?: Object;
+  jsonPayload?: object;
   subscription?: Subscription;
 }
 
