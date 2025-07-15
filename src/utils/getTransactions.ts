@@ -19,11 +19,11 @@ const TRANSACTIONS_FILE_NAME = 'transactions.json';
 const ACTIVITIES_FILE_NAME = 'activities.json';
 const TRANSACTIONS_WITH_DETAILS_FILE_NAME = 'transactions_with_details.json';
 
-export async function getTransactions(): Promise<Transaction[]> {
-  return new Promise((resolve, reject) => {
+export const getTransactions = async (): Promise<Transaction[]> =>
+  new Promise((resolve, reject) => {
     let activities: Activity[] = [];
     let transactions: Transaction[] = [];
-    let transactionsToFetchDetailsFor: Set<string> = new Set();
+    let transactionsToFetchDetailsFor = new Set<string>();
 
     TradeRepublicAPI.getInstance().connect({
       onOpen: () => {
@@ -53,7 +53,7 @@ export async function getTransactions(): Promise<Transaction[]> {
           return;
         }
 
-        if (subscription.type === SUBSCRIPTION_TYPES.ACTIVITIES) {
+        if (subscription?.type === SUBSCRIPTION_TYPES.ACTIVITIES) {
           try {
             const activityResponse = jsonPayload as ActivityResponse;
             activities = activities.concat(activityResponse.items);
@@ -76,7 +76,7 @@ export async function getTransactions(): Promise<Transaction[]> {
           }
         }
 
-        if (subscription.type === SUBSCRIPTION_TYPES.TRANSACTIONS) {
+        if (subscription?.type === SUBSCRIPTION_TYPES.TRANSACTIONS) {
           try {
             const transactionResponse = jsonPayload as TransactionResponse;
             transactions.push(...transactionResponse.items);
@@ -141,7 +141,10 @@ export async function getTransactions(): Promise<Transaction[]> {
           }
         }
 
-        if (subscription.type === SUBSCRIPTION_TYPES.TRANSACTION_DETAILS) {
+        if (
+          subscription?.type === SUBSCRIPTION_TYPES.TRANSACTION_DETAILS &&
+          subscription.id
+        ) {
           try {
             const transactionDetailsResponse =
               jsonPayload as TransactionDetailsResponse;
@@ -190,4 +193,3 @@ export async function getTransactions(): Promise<Transaction[]> {
       },
     });
   });
-}

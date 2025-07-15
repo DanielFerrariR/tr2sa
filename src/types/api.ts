@@ -1,25 +1,33 @@
 import { CloseEvent, ErrorEvent } from 'ws';
+import { SUBSCRIPTION_TYPES } from '../constants';
 
-export type LoginPayload = {
+export interface LoginPayload {
   phoneNumber: string;
   pin: string;
-};
+}
 
-export type VerifySmsPinPayload = {
+export interface VerifySmsPinPayload {
   processId: string;
   smsPin: string;
-};
+}
 
-type SplitMessage<PayloadType = any> = {
+export interface Subscription {
+  id?: string;
+  after?: string;
+  type: SUBSCRIPTION_TYPES;
+  token?: string;
+}
+
+export interface SplitMessage {
   command: string;
-  jsonPayload?: PayloadType;
-  subscription?: any;
-};
+  jsonPayload?: Object;
+  subscription?: Subscription;
+}
 
-export type ConnectOptions = {
+export interface ConnectOptions {
   onOpen?: () => void;
   onClose?: (event: CloseEvent) => void;
   onConnected?: (message: string) => void;
   onMessage?: (message: string, splitMessage: SplitMessage) => void;
   onError?: (event: ErrorEvent) => void;
-};
+}

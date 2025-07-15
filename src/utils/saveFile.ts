@@ -5,16 +5,14 @@ export const saveFile = (
   data: string,
   filename: string,
   outputDirectory: string,
-) => {
-  const filePath = path.join(process.cwd(), `${outputDirectory}/${filename}`);
-
-  if (!fs.existsSync(outputDirectory))
-    fs.mkdirSync(outputDirectory, { recursive: true });
-
+): void => {
   try {
+    const outputPath = path.join(process.cwd(), outputDirectory);
+    const filePath = path.join(outputPath, filename);
+    fs.mkdirSync(outputPath, { recursive: true });
     fs.writeFileSync(filePath, data);
-    console.log(`JSON file "${filename}" successfully saved to ${filePath}.`);
+    console.log(`File "${filename}" successfully saved to ${filePath}.`);
   } catch (error) {
-    console.error(`Error saving JSON file "${filename}".`, error);
+    console.error(`Error saving file "${filename}".`, error);
   }
 };

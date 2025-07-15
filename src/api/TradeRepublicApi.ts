@@ -1,7 +1,12 @@
 import { Cookie, CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
 import axios, { AxiosInstance } from 'axios';
-import { ConnectOptions, LoginPayload, VerifySmsPinPayload } from '../types';
+import {
+  ConnectOptions,
+  LoginPayload,
+  Subscription,
+  VerifySmsPinPayload,
+} from '../types';
 import {
   CONNECTION_MESSAGE,
   CONNECTION_STATUS,
@@ -10,6 +15,7 @@ import {
   TRADE_REPUBLIC_WEBSOCKET_URL,
 } from '../constants';
 import WebSocket from 'ws';
+import { Dictionary } from '../../types';
 
 export class TradeRepublicAPI {
   private static instance: TradeRepublicAPI;
@@ -18,7 +24,7 @@ export class TradeRepublicAPI {
   private _webSocket: WebSocket | undefined;
   private _sessionToken: string | undefined;
   private _subscriptionId = 1;
-  private _subscriptions: { [key: number]: any } = {};
+  private _subscriptions: Dictionary<number, Subscription> = {};
 
   private constructor() {
     this._cookieJar = new CookieJar();
@@ -31,9 +37,7 @@ export class TradeRepublicAPI {
   }
 
   public static getInstance(): TradeRepublicAPI {
-    if (!TradeRepublicAPI.instance) {
-      TradeRepublicAPI.instance = new TradeRepublicAPI();
-    }
+    TradeRepublicAPI.instance ??= new TradeRepublicAPI();
     return TradeRepublicAPI.instance;
   }
 
@@ -121,7 +125,7 @@ export class TradeRepublicAPI {
         return;
       }
 
-      let jsonPayload: any;
+      let jsonPayload: Object | undefined;
 
       const [subscriptionId, command] = message.split(' ', 2);
       let jsonMatch = message.match(/\{.*\}/s);

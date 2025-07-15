@@ -15,7 +15,7 @@ const MENU_OPTIONS = {
   INTERACTIVE_SOCKET_CONNECTION: 'interactiveSocketConnection',
 };
 
-async function main() {
+(async () => {
   const { action } = await inquirer.prompt([
     {
       type: 'list',
@@ -48,7 +48,6 @@ async function main() {
     const transactions = await getTransactions();
     convertTransactionsToSnowballCsv(transactions);
     console.log('Conversion to Snowball CSV completed.');
-    return;
   }
 
   if (action === MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV) {
@@ -76,8 +75,5 @@ async function main() {
     const wasLoginSuccessful = await login();
     if (!wasLoginSuccessful) return;
     interactiveSocketConnection();
-    return;
   }
-}
-
-main();
+})();
