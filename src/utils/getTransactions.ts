@@ -35,7 +35,9 @@ export const getTransactions = async (): Promise<Transaction[]> =>
           console.log('\n--- WebSocket Ready ---');
           console.log('Starting automatic fetching of transactions...');
 
-          TradeRepublicAPI.getInstance().sendActivitiesMessage();
+          TradeRepublicAPI.getInstance().sendSubscriptionMessage(
+            SUBSCRIPTION_TYPES.ACTIVITIES,
+          );
           console.log('Sent initial activity request.');
         } catch (error) {
           console.error('Error during initial connection:', error);
@@ -57,9 +59,12 @@ export const getTransactions = async (): Promise<Transaction[]> =>
           try {
             const activityResponse = jsonPayload as ActivityResponse;
             activities = activities.concat(activityResponse.items);
-            const afterCursor = activityResponse.cursors.after;
-            if (afterCursor) {
-              TradeRepublicAPI.getInstance().sendActivitiesMessage(afterCursor);
+            const after = activityResponse.cursors.after;
+            if (after) {
+              TradeRepublicAPI.getInstance().sendSubscriptionMessage(
+                SUBSCRIPTION_TYPES.ACTIVITIES,
+                { after },
+              );
             } else {
               console.log('All activities fetched.');
               saveFile(
@@ -67,7 +72,9 @@ export const getTransactions = async (): Promise<Transaction[]> =>
                 ACTIVITIES_FILE_NAME,
                 OUTPUT_DIRECTORY,
               );
-              TradeRepublicAPI.getInstance().sendTransactionsMessage();
+              TradeRepublicAPI.getInstance().sendSubscriptionMessage(
+                SUBSCRIPTION_TYPES.TRANSACTIONS,
+              );
               console.log('Sent initial transactions request.');
             }
           } catch (error) {
@@ -80,10 +87,11 @@ export const getTransactions = async (): Promise<Transaction[]> =>
           try {
             const transactionResponse = jsonPayload as TransactionResponse;
             transactions.push(...transactionResponse.items);
-            const afterCursor = transactionResponse.cursors.after;
-            if (afterCursor) {
-              TradeRepublicAPI.getInstance().sendTransactionsMessage(
-                afterCursor,
+            const after = transactionResponse.cursors.after;
+            if (after) {
+              TradeRepublicAPI.getInstance().sendSubscriptionMessage(
+                SUBSCRIPTION_TYPES.TRANSACTIONS,
+                { after },
               );
             } else {
               console.log('All transactions fetched.');
@@ -130,8 +138,9 @@ export const getTransactions = async (): Promise<Transaction[]> =>
                 transactionsToFetchDetailsFor.add(transaction.id);
               }
               for (const transaction of transactions) {
-                TradeRepublicAPI.getInstance().sendTransactionDetailsMessage(
-                  transaction.id,
+                TradeRepublicAPI.getInstance().sendSubscriptionMessage(
+                  SUBSCRIPTION_TYPES.TRANSACTION_DETAILS,
+                  { id: transaction.id },
                 );
               }
             }

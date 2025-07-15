@@ -4,6 +4,7 @@ import axios, { AxiosInstance } from 'axios';
 import {
   ConnectOptions,
   LoginPayload,
+  SubscriptionMessagePayloadMap,
   Subscription,
   VerifySmsPinPayload,
 } from '../types';
@@ -62,10 +63,9 @@ export class TradeRepublicAPI {
     )?.value;
   }
 
-  public _sendSubscriptionMessage(
-    type: SUBSCRIPTION_TYPES,
-    after?: string,
-    transactionId?: string,
+  public sendSubscriptionMessage<SubscriptionType extends SUBSCRIPTION_TYPES>(
+    type: SubscriptionType,
+    payloadData?: SubscriptionMessagePayloadMap[SubscriptionType],
   ) {
     if (!this._webSocket) {
       console.warn('WebSocket is not connected.');
@@ -75,8 +75,7 @@ export class TradeRepublicAPI {
     const jsonPayload = {
       type,
       token: this._sessionToken,
-      ...(after ? { after } : {}),
-      ...(transactionId ? { id: transactionId } : {}),
+      ...payloadData,
     };
 
     this._webSocket.send(
@@ -86,20 +85,29 @@ export class TradeRepublicAPI {
     this._subscriptionId++;
   }
 
-  public sendTransactionsMessage(after?: string) {
-    this._sendSubscriptionMessage(SUBSCRIPTION_TYPES.TRANSACTIONS, after);
-  }
+  public sendMessage(message: string) {
+    if (!this._webSocket) {
+      console.warn('WebSocket is not connected.');
+      return;
+    }
 
-  public sendActivitiesMessage(after?: string) {
-    this._sendSubscriptionMessage(SUBSCRIPTION_TYPES.ACTIVITIES, after);
-  }
+    // To always include the token if the message has a format like: sub 1 {"type":"availableCash"}
+    try {
+      const [command, subscriptionId] = message.split(' ', 2);
+      let jsonMatch = message.match(/\{.*\}/s);
+      if (!jsonMatch) throw new Error('No JSON payload found in message');
+      const jsonPayload = JSON.parse(jsonMatch![0]);
+      jsonPayload.token = this._sessionToken;
+      message = `${command} ${subscriptionId} ${JSON.stringify(jsonPayload)}`;
+    } catch (error) {
+      console.warn(
+        "Could not parse subscription message for token injection. Ensure it's valid JSON.",
+        error,
+      );
+    }
 
-  public sendTransactionDetailsMessage(transactionId: string) {
-    this._sendSubscriptionMessage(
-      SUBSCRIPTION_TYPES.TRANSACTION_DETAILS,
-      undefined,
-      transactionId,
-    );
+    console.log('Sending message:', message);
+    this._webSocket?.send(message);
   }
 
   public connect({
@@ -150,33 +158,6 @@ export class TradeRepublicAPI {
     this._webSocket.onerror = (event) => {
       onError?.(event);
     };
-
-    this;
-  }
-
-  public sendMessage(message: string) {
-    if (!this._webSocket) {
-      console.warn('WebSocket is not connected.');
-      return;
-    }
-
-    // To always include the token if the message has a format like: sub 1 {"type":"availableCash"}
-    try {
-      const [command, subscriptionId] = message.split(' ', 2);
-      let jsonMatch = message.match(/\{.*\}/s);
-      if (!jsonMatch) throw new Error('No JSON payload found in message');
-      const jsonPayload = JSON.parse(jsonMatch![0]);
-      jsonPayload.token = this._sessionToken;
-      message = `${command} ${subscriptionId} ${JSON.stringify(jsonPayload)}`;
-    } catch (error) {
-      console.warn(
-        "Could not parse subscription message for token injection. Ensure it's valid JSON.",
-        error,
-      );
-    }
-
-    console.log('Sending message:', message);
-    this._webSocket?.send(message);
   }
 
   public disconnect() {

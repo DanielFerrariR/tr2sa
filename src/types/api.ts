@@ -1,5 +1,7 @@
 import { CloseEvent, ErrorEvent } from 'ws';
 import { SUBSCRIPTION_TYPES } from '../constants';
+import { ActivityPayload } from './activities';
+import { TransactionDetailsPayload, TransactionPayload } from './transactions';
 
 export interface LoginPayload {
   phoneNumber: string;
@@ -30,4 +32,10 @@ export interface ConnectOptions {
   onConnected?: (message: string) => void;
   onMessage?: (message: string, splitMessage: SplitMessage) => void;
   onError?: (event: ErrorEvent) => void;
+}
+
+export interface SubscriptionMessagePayloadMap {
+  [SUBSCRIPTION_TYPES.ACTIVITIES]: ActivityPayload;
+  [SUBSCRIPTION_TYPES.TRANSACTIONS]: TransactionPayload;
+  [SUBSCRIPTION_TYPES.TRANSACTION_DETAILS]: TransactionDetailsPayload;
 }

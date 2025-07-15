@@ -126,6 +126,10 @@ export type TransactionSection =
   | TransactionDocumentsSection
   | TransactionBannerSection;
 
+export interface TransactionDetailsPayload {
+  id: string;
+}
+
 export interface TransactionDetailsResponse {
   id: string;
   sections: TransactionSection[];
@@ -153,6 +157,10 @@ export interface Transaction {
   hidden: boolean;
   deleted: boolean;
   sections?: TransactionSection[]; // Added later to the transaction
+}
+
+export interface TransactionPayload {
+  after?: string;
 }
 
 export interface TransactionResponse {

@@ -15,6 +15,10 @@ export interface Activity {
   eventType: ACTIVITY_EVENT_TYPE;
 }
 
+export interface ActivityPayload {
+  after?: string;
+}
+
 export interface ActivityResponse {
   items: Activity[];
   cursors: {
