@@ -69,8 +69,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
           const tableSection = section as TransactionTableSection;
-          const SharesSubsection = tableSection.data.find(
-            (subSection) => subSection.title === 'Shares',
+          const totalSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Total',
           );
           const dividendPerShareSubsction = tableSection.data.find(
             (subSection) => subSection.title === 'Dividend per share',
@@ -79,9 +79,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
             (subSection) => subSection.title === 'Tax',
           );
           price = dividendPerShareSubsction?.detail?.text?.slice(1) ?? '';
-          quantity = SharesSubsection?.detail?.text ?? '';
-          currency =
-            SIGN_TO_CURRENCY_MAP[dividendPerShareSubsction?.detail?.text?.[0]!];
+          quantity = totalSubSection?.detail?.text?.slice(1) ?? '';
+          currency = SIGN_TO_CURRENCY_MAP[totalSubSection?.detail?.text?.[0]!];
           feeTax = feeSubSection?.detail?.text?.slice(1) ?? '';
           feeCurrency = SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
         }
