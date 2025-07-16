@@ -79,7 +79,10 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
             (subSection) => subSection.title === 'Tax',
           );
           price = dividendPerShareSubsction?.detail?.text?.slice(1) ?? '';
-          quantity = totalSubSection?.detail?.text?.slice(1) ?? '';
+          quantity = String(
+            Number(totalSubSection?.detail?.text?.slice(1)) +
+              Number(feeSubSection?.detail?.text?.slice(1)),
+          );
           currency = SIGN_TO_CURRENCY_MAP[totalSubSection?.detail?.text?.[0]!];
           feeTax = feeSubSection?.detail?.text?.slice(1) ?? '';
           feeCurrency = SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
