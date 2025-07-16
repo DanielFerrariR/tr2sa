@@ -4,6 +4,7 @@ import {
   Transaction,
   TransactionHeaderSection,
 } from '../types';
+import { calculateStringNumbers } from './calculateStringNumbers';
 import { saveFile } from './saveFile';
 
 const OUTPUT_DIRECTORY = 'build';
@@ -69,23 +70,29 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
           const tableSection = section as TransactionTableSection;
+          const sharesSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Shares',
+          );
+          const taxSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Tax',
+          );
           const totalSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Total',
           );
-          const dividendPerShareSubsction = tableSection.data.find(
-            (subSection) => subSection.title === 'Dividend per share',
-          );
-          const feeSubSection = tableSection.data.find(
-            (subSection) => subSection.title === 'Tax',
-          );
-          price = dividendPerShareSubsction?.detail?.text?.slice(1) ?? '';
-          quantity = String(
-            Number(totalSubSection?.detail?.text?.slice(1)) +
-              Number(feeSubSection?.detail?.text?.slice(1)),
-          );
+          // The total doesn't include tax, so we need to add it
+          quantity = calculateStringNumbers('add', [
+            totalSubSection?.detail?.text?.slice(1),
+            taxSubSection?.detail?.text?.slice(1),
+          ]);
+          // As the pricePerShare can be in another currency,
+          // we need to calculate it with the total / shares
+          price = calculateStringNumbers('divide', [
+            quantity,
+            sharesSubSection?.detail?.text,
+          ]);
           currency = SIGN_TO_CURRENCY_MAP[totalSubSection?.detail?.text?.[0]!];
-          feeTax = feeSubSection?.detail?.text?.slice(1) ?? '';
-          feeCurrency = SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
+          feeTax = taxSubSection?.detail?.text?.slice(1) ?? '';
+          feeCurrency = SIGN_TO_CURRENCY_MAP[taxSubSection?.detail?.text?.[0]!];
         }
       });
     }
