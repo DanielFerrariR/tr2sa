@@ -42,3 +42,7 @@ If you want to import your cash balance change your portfolio accounting to 'Cur
 
 If you liked this project and want me to keep it updated. Consider to tip any amount to:
 https://streamlabs.com/danielferrarir/tip
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/DanielFerrariR/tr2sa/LICENSE) file for details.
