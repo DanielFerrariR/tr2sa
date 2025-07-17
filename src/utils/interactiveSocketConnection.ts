@@ -64,16 +64,8 @@ export const interactiveSocketConnection = (): void => {
         return;
       }
 
-      if (
-        TradeRepublicAPI.getInstance().getConnectionStatus() ===
-        CONNECTION_STATUS.OPEN
-      ) {
-        TradeRepublicAPI.getInstance().sendMessage(messageToSend);
-        console.log('Message sent:', messageToSend);
-      } else {
-        console.warn('WebSocket is not ready to send messages yet.');
-      }
-
+      TradeRepublicAPI.getInstance().sendMessage(messageToSend);
+      console.log('Message sent:', messageToSend);
       readlineInterface.prompt();
     })
     .on('close', () => {
@@ -81,7 +73,8 @@ export const interactiveSocketConnection = (): void => {
       if (
         TradeRepublicAPI.getInstance().getConnectionStatus() ===
         CONNECTION_STATUS.OPEN
-      )
+      ) {
         TradeRepublicAPI.getInstance().disconnect();
+      }
     });
 };
