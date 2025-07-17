@@ -81,7 +81,7 @@ export const getTransactions = async (): Promise<Transaction[]> =>
             );
             console.log('Sent initial transactions request.');
           } catch (error) {
-            console.error('Error processing transaction message:', message);
+            console.error('Error processing activity message:', message);
             reject(error);
           }
         }
