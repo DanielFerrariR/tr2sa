@@ -10,10 +10,12 @@ import {
 import { TradeRepublicAPI } from '../api';
 import {
   ACTIVITY_EVENT_TYPE,
+  CURRENCY_TO_SIGN_MAP,
   RECEIVED_COMMAND_TYPES,
   SUBSCRIPTION_TYPES,
   TRANSACTION_EVENT_TYPE,
 } from '../constants';
+import { AvailableCashResponse } from '../types/cash';
 
 const OUTPUT_DIRECTORY = 'build';
 const TRANSACTIONS_FILE_NAME = 'transactions.json';
@@ -212,8 +214,9 @@ export const getTransactions = async (): Promise<Transaction[]> =>
               TRANSACTIONS_WITH_DETAILS_FILE_NAME,
               OUTPUT_DIRECTORY,
             );
-            TradeRepublicAPI.getInstance().disconnect();
-            resolve(transactions);
+            TradeRepublicAPI.getInstance().sendSubscriptionMessage(
+              SUBSCRIPTION_TYPES.AVAILABLE_CASH,
+            );
           } catch (error) {
             console.error(
               'Error processing transaction details message:',
@@ -221,6 +224,18 @@ export const getTransactions = async (): Promise<Transaction[]> =>
             );
             reject(error);
           }
+        }
+
+        if (subscription?.type === SUBSCRIPTION_TYPES.AVAILABLE_CASH) {
+          const cashBalanceResponse = jsonPayload as AvailableCashResponse;
+          const currency = CURRENCY_TO_SIGN_MAP[cashBalanceResponse.currencyId];
+          const amount = cashBalanceResponse.amount;
+          console.log(`Your current cash balance is: ${currency}${amount}`);
+          console.log(
+            `Please follow the steps in the README to manually add your cash balance in the Snowball Analytics app.`,
+          );
+          TradeRepublicAPI.getInstance().disconnect();
+          resolve(transactions);
         }
       },
       onClose: (event) => {

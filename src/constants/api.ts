@@ -9,6 +9,7 @@ export enum SUBSCRIPTION_TYPES {
   'TRANSACTIONS' = 'timelineTransactions', // Transactions
   'TRANSACTION_DETAILS' = 'timelineDetailV2', // Additional details for a specific transaction
   'ACTIVITIES' = 'timelineActivityLog', // The list of activities
+  'AVAILABLE_CASH' = 'availableCash', // Available cash
 }
 
 export const CONNECTION_STATUS = {
