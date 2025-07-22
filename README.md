@@ -18,9 +18,13 @@ Currently supported transactions:
 You need to manually add your current cash balance in Snowball Analytics.
 
 1 - Go to the current portfolio settings and change 'Cash accounting' to 'All cash movements'
+
 2 - Import the CSV
+
 3 - Go to the portfolio settings again and change 'Cash accounting' to 'Current balance'
+
 4 - Go to the cash balance => click in the currency => three dots button => Edit balance
+
 5 - Put your real cash balance from Trade Republic.
 
 Note, importing a CSV with 'Cash accounting' as 'Current balance' will remove your cash balance. You can do all these steps again to re-add it or go to https://snowball-analytics.com/cash to add it there as the mobile application doesn't have this option.
