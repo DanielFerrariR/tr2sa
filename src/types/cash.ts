@@ -1,5 +1,5 @@
-export type AvailableCashResponse = {
+export type CashResponse = {
   accountNumber: string;
-  currencyId: string;
+  currencyId: 'USD' | 'EUR' | 'GBP';
   amount: string;
 };

@@ -6,6 +6,7 @@ import {
   Activity,
   ActivityResponse,
   TransactionTableSection,
+  CashResponse,
 } from '../types';
 import { TradeRepublicAPI } from '../api';
 import {
@@ -15,12 +16,12 @@ import {
   SUBSCRIPTION_TYPES,
   TRANSACTION_EVENT_TYPE,
 } from '../constants';
-import { AvailableCashResponse } from '../types/cash';
 
 const OUTPUT_DIRECTORY = 'build';
 const TRANSACTIONS_FILE_NAME = 'transactions.json';
 const ACTIVITIES_FILE_NAME = 'activities.json';
 const TRANSACTIONS_WITH_DETAILS_FILE_NAME = 'transactions_with_details.json';
+const ORDERS_FILE_NAME = 'orders.json';
 
 export const getTransactions = async (): Promise<Transaction[]> =>
   new Promise((resolve, reject) => {
@@ -214,8 +215,9 @@ export const getTransactions = async (): Promise<Transaction[]> =>
               TRANSACTIONS_WITH_DETAILS_FILE_NAME,
               OUTPUT_DIRECTORY,
             );
+            console.log('Starting to fetch the current cash balance.');
             TradeRepublicAPI.getInstance().sendSubscriptionMessage(
-              SUBSCRIPTION_TYPES.AVAILABLE_CASH,
+              SUBSCRIPTION_TYPES.CASH,
             );
           } catch (error) {
             console.error(
@@ -226,11 +228,12 @@ export const getTransactions = async (): Promise<Transaction[]> =>
           }
         }
 
-        if (subscription?.type === SUBSCRIPTION_TYPES.AVAILABLE_CASH) {
-          const cashBalanceResponse = jsonPayload as AvailableCashResponse;
-          const currency = CURRENCY_TO_SIGN_MAP[cashBalanceResponse.currencyId];
-          const amount = cashBalanceResponse.amount;
-          console.log(`Your current cash balance is: ${currency}${amount}`);
+        if (subscription?.type === SUBSCRIPTION_TYPES.CASH) {
+          const cashResponse = jsonPayload as CashResponse;
+          const currency = CURRENCY_TO_SIGN_MAP[cashResponse.currencyId];
+          let amount = cashResponse.amount;
+
+          console.log(`Your current cash balance is: ${amount} ${currency}`);
           console.log(
             `Please follow the steps in the README to manually add your cash balance in the Snowball Analytics app.`,
           );

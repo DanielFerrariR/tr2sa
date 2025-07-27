@@ -2,7 +2,6 @@ import { CloseEvent, ErrorEvent } from 'ws';
 import { SUBSCRIPTION_TYPES } from '../constants';
 import { ActivityPayload } from './activities';
 import { TransactionDetailsPayload, TransactionPayload } from './transactions';
-import { availableCashResponse } from './cash';
 
 export interface LoginPayload {
   phoneNumber: string;
@@ -39,5 +38,5 @@ export interface SubscriptionMessagePayloadMap {
   [SUBSCRIPTION_TYPES.ACTIVITIES]: ActivityPayload;
   [SUBSCRIPTION_TYPES.TRANSACTIONS]: TransactionPayload;
   [SUBSCRIPTION_TYPES.TRANSACTION_DETAILS]: TransactionDetailsPayload;
-  [SUBSCRIPTION_TYPES.AVAILABLE_CASH]: undefined;
+  [SUBSCRIPTION_TYPES.CASH]: undefined;
 }

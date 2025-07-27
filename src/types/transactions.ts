@@ -150,7 +150,7 @@ export interface Transaction {
   subtitle: string | null;
   amount: TransactionAmount;
   subAmount: any;
-  status: string;
+  status: 'EXECUTED' | 'CANCELED';
   action: TransactionAction;
   eventType: TRANSACTION_EVENT_TYPE;
   cashAccountNumber: string | null;

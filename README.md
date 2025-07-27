@@ -38,7 +38,7 @@ Note, importing a CSV with 'Cash accounting' as 'Current balance' will remove yo
     - Transactions: {"type": "timelineTransactions"} // list of transactions with optional 'after' option to get the next list of transactions (after needs the hash from the previous call)
     - Transaction Details: {"type": "timelineDetailV2", "id": timeline_id } // extra details of a transactions with required timeline_id that is id of a transaction
     - Activity Log: {"type": "timelineActivityLog" } // list of activies with optional 'after' option to get the next list of activities (after needs the hash from the previous call)
-    - Available cash: {"type": "availableCash" } // current cash balance
+    - Cash: {"type": "cash" } // Cash balance
     - Can get more of options from https://github.com/pytr-org/pytr/blob/master/pytr/api.py code, but this project isn't supporting and explaining how to use the others for now
 
 ## Steps

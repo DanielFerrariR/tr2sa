@@ -18,7 +18,7 @@ export const interactiveSocketConnection = (): void => {
       console.log(
         'You can now type messages to send. The number at the beginning of the message is the subscription ID and needs to be unique for each subscription.',
       );
-      console.log(`Example: sub 1 {"type":"availableCash"}`);
+      console.log(`Example: sub 1 {"type":"cash"}`);
       console.log('Type "exit" to close the connection.');
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);

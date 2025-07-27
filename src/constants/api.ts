@@ -9,7 +9,7 @@ export enum SUBSCRIPTION_TYPES {
   'TRANSACTIONS' = 'timelineTransactions', // Transactions
   'TRANSACTION_DETAILS' = 'timelineDetailV2', // Additional details for a specific transaction
   'ACTIVITIES' = 'timelineActivityLog', // The list of activities
-  'AVAILABLE_CASH' = 'availableCash', // Available cash
+  'CASH' = 'cash', // Cash balance
 }
 
 export const CONNECTION_STATUS = {
@@ -22,5 +22,5 @@ export const CONNECTION_STATUS = {
 
 export const RECEIVED_COMMAND_TYPES = {
   KEEP_ALIVE: 'C',
-  DATA: 'A', // Data message, maybe wrong name, but looks like it, as it contains a JSON payload
+  DATA: 'A', // Data message which contains a JSON payload
 };
