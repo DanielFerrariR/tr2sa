@@ -93,7 +93,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
 
     // Received stock gifts
     if (item.eventType === TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY) {
-      event = 'Buy';
+      event = 'Stock_As_Dividend';
       date = item.timestamp.slice(0, 10);
       exchange = 'F';
       note = item.title;
@@ -111,7 +111,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
           const sharesPriceSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Share price',
           );
-          price = sharesPriceSubSection?.detail?.text?.slice(1) ?? '';
+          price = '0';
           quantity = sharesSubSection?.detail?.text ?? '';
           currency =
             SIGN_TO_CURRENCY_MAP[sharesPriceSubSection?.detail?.text?.[0]!];
