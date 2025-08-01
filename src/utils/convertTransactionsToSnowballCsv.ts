@@ -52,8 +52,9 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
 
     // Dividends
     if (
-      item.eventType ===
-      TRANSACTION_EVENT_TYPE.SSP_CORPORATE_ACTION_INVOICE_CASH
+      [TRANSACTION_EVENT_TYPE.SSP_CORPORATE_ACTION_INVOICE_CASH].includes(
+        item.eventType,
+      )
     ) {
       event = 'Dividend';
       date = item.timestamp.slice(0, 10);
@@ -91,15 +92,47 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       });
     }
 
-    // Received stock gifts
-    if (item.eventType === TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY) {
+    // Received Stock gifts when opening an account
+    if ([TRANSACTION_EVENT_TYPE.STOCK_PERK_REFUNDED].includes(item.eventType)) {
       event = 'Stock_As_Dividend';
       date = item.timestamp.slice(0, 10);
       exchange = 'F';
       note = item.title;
 
       item.sections?.forEach((section) => {
-        if ('title' in section && section.title === 'You accepted your gift') {
+        if ('title' in section && section.type === 'header') {
+          const headerSection = section as TransactionHeaderSection;
+          symbol = headerSection?.data?.icon?.split('/')[1];
+        }
+        if ('title' in section && section.title === 'Transaction') {
+          const tableSection = section as TransactionTableSection;
+          const sharesSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Shares',
+          );
+          const sharesPriceSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Share price',
+          );
+          price = '0';
+          quantity = sharesSubSection?.detail?.text ?? '';
+          currency =
+            SIGN_TO_CURRENCY_MAP[sharesPriceSubSection?.detail?.text?.[0]!];
+        }
+      });
+    }
+
+    // Received stock gifts from a friend
+    if (
+      [TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY].includes(
+        item.eventType,
+      )
+    ) {
+      event = 'Stock_As_Dividend';
+      date = item.timestamp.slice(0, 10);
+      exchange = 'F';
+      note = item.title;
+
+      item.sections?.forEach((section) => {
+        if ('title' in section && section.type === 'header') {
           const headerSection = section as TransactionHeaderSection;
           symbol = headerSection?.data?.icon?.split('/')[1];
         }
@@ -191,7 +224,11 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
     }
 
     // tax corrections
-    if (item.eventType === TRANSACTION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE) {
+    if (
+      [TRANSACTION_EVENT_TYPE.SSP_TAX_CORRECTION_INVOICE].includes(
+        item.eventType,
+      )
+    ) {
       event = item.amount.value > 0 ? 'Cash_Gain' : 'Cash_Expense';
       date = item.timestamp.slice(0, 10);
       symbol = item.amount.currency;
@@ -203,8 +240,9 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
 
     // Legacy transactions (trades, savings plans)
     if (
-      item.eventType ===
-        TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
+      [TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS].includes(
+        item.eventType,
+      ) &&
       item.subtitle !== null &&
       ['Saving executed', 'Sell Order', 'Buy Order'].includes(item.subtitle)
     ) {
@@ -244,8 +282,9 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
 
     // Legacy transactions (Interest)
     if (
-      item.eventType ===
-        TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS &&
+      [TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS].includes(
+        item.eventType,
+      ) &&
       item.title === 'Interest' &&
       item.subtitle === null
     ) {

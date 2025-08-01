@@ -105,10 +105,11 @@ export const getTransactions = async (): Promise<Transaction[]> =>
 
             // Adding fake received gift transactions from activities as transactions list doesn't include received gifts
             const giftTransactions: Transaction[] = activities
-              .filter(
-                (activity) =>
-                  activity.eventType ===
+              .filter((activity) =>
+                [
                   ACTIVITY_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
+                  ACTIVITY_EVENT_TYPE.STOCK_PERK_REFUNDED,
+                ].includes(activity.eventType),
               )
               .map((activity) => ({
                 id: activity.id,
@@ -128,7 +129,11 @@ export const getTransactions = async (): Promise<Transaction[]> =>
                   type: 'timelineDetail',
                   payload: activity.id,
                 },
-                eventType: TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
+                eventType:
+                  activity.eventType ===
+                  ACTIVITY_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY
+                    ? TRANSACTION_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY
+                    : TRANSACTION_EVENT_TYPE.STOCK_PERK_REFUNDED,
                 cashAccountNumber: null,
                 hidden: false,
                 deleted: false,

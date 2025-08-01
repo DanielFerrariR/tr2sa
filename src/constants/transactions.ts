@@ -18,5 +18,6 @@ export enum TRANSACTION_EVENT_TYPE {
   INCOMING_TRANSFER = 'INCOMING_TRANSFER', // income transfer
   CARD_ORDER_BILLED = 'card_order_billed', // money spend in a new Trade Republic card
   GIFTER_TRANSACTION = 'GIFTER_TRANSACTION', // Send stock gift to a friend
-  GIFTING_RECIPIENT_ACTIVITY = 'GIFTING_RECIPIENT_ACTIVITY', // Custom because transactions are missing this, so we need to retrieve this from activities
+  GIFTING_RECIPIENT_ACTIVITY = 'GIFTING_RECIPIENT_ACTIVITY', // Received stock gifts from a friend, this is custom because transactions doesn't include it, so we need to pick this from activities
+  STOCK_PERK_REFUNDED = 'STOCK_PERK_REFUNDED', // Received stock gifts when opening an account, this is custom because transactions doesn't include it, so we need to pick this from activities
 }

@@ -12,4 +12,5 @@ export enum ACTIVITY_EVENT_TYPE {
   SPP_CORPORATE_ACTION_INFORMATIVE_NOTIFICATION = 'ssp_corporate_action_informative_notification',
   NEW_TR_IBAN = 'new_tr_iban',
   STOCK_PERK_REFUNDED = 'STOCK_PERK_REFUNDED',
+  STOCK_PERK_EXPIRED = 'STOCK_PERK_EXPIRED',
 }

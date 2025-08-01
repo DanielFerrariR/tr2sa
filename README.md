@@ -11,7 +11,7 @@ Currently supported transactions:
 - dividends
 - interests
 - tax corrections
-- received stock gift
+- received stock gift (when opening an account and from a friend)
 
 ## Update cash balance
 
