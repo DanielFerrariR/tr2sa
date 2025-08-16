@@ -12,6 +12,7 @@ import {
   CONNECTION_MESSAGE,
   CONNECTION_STATUS,
   SUBSCRIPTION_TYPES,
+  TRADE_REPUBLIC_API_HEADERS,
   TRADE_REPUBLIC_API_URL,
   TRADE_REPUBLIC_WEBSOCKET_URL,
 } from '../constants';
@@ -31,6 +32,7 @@ export class TradeRepublicAPI {
     this._client = axios.create({
       baseURL: TRADE_REPUBLIC_API_URL,
       withCredentials: true,
+      headers: TRADE_REPUBLIC_API_HEADERS,
     });
     wrapper(this._client);
     this._client.defaults.jar = this._cookieJar;
