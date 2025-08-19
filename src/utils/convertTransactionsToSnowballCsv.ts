@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { parse } from 'node-html-parser';
 import { SIGN_TO_CURRENCY_MAP, TRANSACTION_EVENT_TYPE } from '../constants';
 import {
   TransactionTableSection,
@@ -24,7 +26,42 @@ const HEADERS = [
   'Note',
 ];
 
-export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
+const symbolToExchange: Record<string, string> = {};
+
+// Using Xetra as the default as Lang & Schwarz exchange doesn't provide enough information
+// if the trade happened in Xetra or Frankfurt exchange
+// if the stock/etf isn't traded in Xetra it will fallback to Frankfurt
+const getExchangeFromSymbol = async (symbol: string) => {
+  if (symbolToExchange[symbol]) return symbolToExchange[symbol];
+
+  // We don't know if its a etf or stock yet with just the symbol, so we need to check both
+  const [stockResponse, etfResponse] = await Promise.all([
+    axios.get(`https://www.boerse-frankfurt.de/aktie/${symbol}`),
+    axios.get(`https://www.boerse-frankfurt.de/etf/${symbol}`),
+  ]);
+
+  const stockExchanges = parse(stockResponse.data).getElementsByTagName(
+    'app-widget-exchange-bar',
+  )?.[0]?.children;
+  const etfExchanges = parse(etfResponse.data).getElementsByTagName(
+    'app-widget-exchange-bar',
+  )?.[0]?.children;
+
+  if (
+    stockExchanges?.some((item) => item?.innerText.includes('Xetra')) ||
+    etfExchanges?.some((item) => item?.innerText.includes('Xetra'))
+  ) {
+    symbolToExchange[symbol] = 'XETRA';
+    return 'XETRA';
+  }
+
+  symbolToExchange[symbol] = 'F';
+  return 'F';
+};
+
+export const convertTransactionsToSnowballCsv = async (
+  data: Transaction[],
+): Promise<void> => {
   if (!data?.length) {
     console.warn(
       'No data provided to convert to CSV. No file will be created.',
@@ -35,8 +72,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
   let csvRows = [];
   csvRows.push(HEADERS.join(','));
 
-  data.forEach((item) => {
-    if (item.status === 'CANCELED') return;
+  for (const item of data) {
+    if (item.status === 'CANCELED') continue;
 
     let event = '';
     let date = '';
@@ -59,7 +96,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       event = 'Dividend';
       date = item.timestamp.slice(0, 10);
       symbol = item.icon.split('/')[1];
-      exchange = 'F';
+      exchange = await getExchangeFromSymbol(symbol);
       note = item.title;
 
       item.sections?.forEach((section) => {
@@ -96,7 +133,6 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
     if ([TRANSACTION_EVENT_TYPE.STOCK_PERK_REFUNDED].includes(item.eventType)) {
       event = 'Stock_As_Dividend';
       date = item.timestamp.slice(0, 10);
-      exchange = 'F';
       note = item.title;
 
       item.sections?.forEach((section) => {
@@ -118,6 +154,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
             SIGN_TO_CURRENCY_MAP[sharesPriceSubSection?.detail?.text?.[0]!];
         }
       });
+
+      exchange = await getExchangeFromSymbol(symbol);
     }
 
     // Received stock gifts from a friend
@@ -128,7 +166,6 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
     ) {
       event = 'Stock_As_Dividend';
       date = item.timestamp.slice(0, 10);
-      exchange = 'F';
       note = item.title;
 
       item.sections?.forEach((section) => {
@@ -150,6 +187,8 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
             SIGN_TO_CURRENCY_MAP[sharesPriceSubSection?.detail?.text?.[0]!];
         }
       });
+
+      exchange = await getExchangeFromSymbol(symbol);
     }
 
     // Buy and Sell transactions (trades, savings plans, roundups and 15 euros per month bonus)
@@ -164,7 +203,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       event = item.amount.value < 0 ? 'Buy' : 'Sell';
       date = item.timestamp.slice(0, 10);
       symbol = item.icon.split('/')[1];
-      exchange = 'F';
+      exchange = await getExchangeFromSymbol(symbol);
       note = item.title;
 
       item.sections?.forEach((section) => {
@@ -249,7 +288,7 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       event = item.amount.value < 0 ? 'Buy' : 'Sell';
       date = item.timestamp.slice(0, 10);
       symbol = item.icon.split('/')[1];
-      exchange = 'F';
+      exchange = await getExchangeFromSymbol(symbol);
       note = item.title;
 
       item.sections?.forEach((section) => {
@@ -311,10 +350,10 @@ export const convertTransactionsToSnowballCsv = (data: Transaction[]): void => {
       note,
     ];
 
-    if (row.every((field) => !field)) return;
+    if (row.every((field) => !field)) continue;
 
     csvRows.push(row.map((field) => `"${field}"`).join(','));
-  });
+  }
 
   const csvString = csvRows.join('\n');
   saveFile(csvString, FILE_NAME, OUTPUT_DIRECTORY);

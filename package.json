@@ -15,6 +15,7 @@
     "axios": "^1.10.0",
     "axios-cookiejar-support": "^6.0.2",
     "inquirer": "^12.7.0",
+    "node-html-parser": "^7.0.1",
     "readline-sync": "^1.4.10",
     "tough-cookie": "^5.1.2",
     "ws": "^8.18.2"

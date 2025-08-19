@@ -46,7 +46,7 @@ const MENU_OPTIONS = {
     const wasLoginSuccessful = await login();
     if (!wasLoginSuccessful) return;
     const transactions = await getTransactions();
-    convertTransactionsToSnowballCsv(transactions);
+    await convertTransactionsToSnowballCsv(transactions);
     console.log('Conversion to Snowball CSV completed.');
   }
 
@@ -64,7 +64,7 @@ const MENU_OPTIONS = {
       const transactionsJson = JSON.parse(
         fs.readFileSync(jsonFilePath, 'utf8'),
       );
-      convertTransactionsToSnowballCsv(transactionsJson);
+      await convertTransactionsToSnowballCsv(transactionsJson);
       console.log('Conversion to Snowball CSV completed.');
     } catch (error) {
       console.error('Error converting to Snowball CSV:', error);
