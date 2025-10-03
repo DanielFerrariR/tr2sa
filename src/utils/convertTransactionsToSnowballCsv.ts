@@ -111,20 +111,31 @@ export const convertTransactionsToSnowballCsv = async (
           const totalSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Total',
           );
+          feeTax =
+            (taxSubSection?.detail?.displayValue?.text[0] === '-'
+              ? taxSubSection?.detail?.displayValue?.text?.slice(2)
+              : taxSubSection?.detail?.displayValue?.text?.slice(1)) ?? '';
+          feeCurrency =
+            SIGN_TO_CURRENCY_MAP[
+              taxSubSection?.detail?.displayValue?.text[0] === '-'
+                ? taxSubSection?.detail?.displayValue?.text?.[1]!
+                : taxSubSection?.detail?.displayValue?.text?.[0]!
+            ];
           // The total doesn't include tax, so we need to add it
           quantity = calculateStringNumbers('add', [
-            totalSubSection?.detail?.text?.slice(1),
-            taxSubSection?.detail?.text?.slice(1),
+            totalSubSection?.detail?.displayValue?.text?.slice(1),
+            feeTax,
           ]);
+          currency =
+            SIGN_TO_CURRENCY_MAP[
+              totalSubSection?.detail?.displayValue?.text?.[0]!
+            ];
           // As the pricePerShare can be in another currency,
           // we need to calculate it with the total / shares
           price = calculateStringNumbers('divide', [
             quantity,
-            sharesSubSection?.detail?.text,
+            sharesSubSection?.detail?.displayValue?.text,
           ]);
-          currency = SIGN_TO_CURRENCY_MAP[totalSubSection?.detail?.text?.[0]!];
-          feeTax = taxSubSection?.detail?.text?.slice(1) ?? '';
-          feeCurrency = SIGN_TO_CURRENCY_MAP[taxSubSection?.detail?.text?.[0]!];
         }
       });
     }

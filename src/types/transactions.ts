@@ -16,6 +16,9 @@ export interface TransactionDetail {
   displayValue?: {
     text: string;
     prefix: string;
+    displayValue: {
+      text: string;
+    };
   };
   title?: string;
   timestamp?: string;
