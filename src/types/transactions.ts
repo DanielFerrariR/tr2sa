@@ -155,7 +155,7 @@ export interface Transaction {
   subAmount: any;
   status: 'EXECUTED' | 'CANCELED';
   action: TransactionAction;
-  eventType: TRANSACTION_EVENT_TYPE;
+  eventType?: TRANSACTION_EVENT_TYPE; // Made optional since it's no longer in the API response
   cashAccountNumber: string | null;
   hidden: boolean;
   deleted: boolean;

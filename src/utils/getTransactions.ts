@@ -16,12 +16,15 @@ import {
   SUBSCRIPTION_TYPES,
   TRANSACTION_EVENT_TYPE,
 } from '../constants';
+import {
+  identifyActivityEventType,
+  identifyTransactionEventType,
+} from './identifyEventType';
 
 const OUTPUT_DIRECTORY = 'build';
 const TRANSACTIONS_FILE_NAME = 'transactions.json';
 const ACTIVITIES_FILE_NAME = 'activities.json';
 const TRANSACTIONS_WITH_DETAILS_FILE_NAME = 'transactions_with_details.json';
-const ORDERS_FILE_NAME = 'orders.json';
 
 export const getTransactions = async (): Promise<Transaction[]> =>
   new Promise((resolve, reject) => {
@@ -103,13 +106,24 @@ export const getTransactions = async (): Promise<Transaction[]> =>
               return;
             }
 
+            transactions = transactions.map((transaction) => ({
+              ...transaction,
+              eventType: identifyTransactionEventType(transaction) ?? undefined,
+            }));
+
             // Adding fake received gift transactions from activities as transactions list doesn't include received gifts
             const giftTransactions: Transaction[] = activities
-              .filter((activity) =>
-                [
-                  ACTIVITY_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
-                  ACTIVITY_EVENT_TYPE.STOCK_PERK_REFUNDED,
-                ].includes(activity.eventType),
+              .map((activity) => ({
+                ...activity,
+                eventType: identifyActivityEventType(activity) ?? undefined,
+              }))
+              .filter(
+                (activity) =>
+                  !!activity.eventType &&
+                  [
+                    ACTIVITY_EVENT_TYPE.GIFTING_RECIPIENT_ACTIVITY,
+                    ACTIVITY_EVENT_TYPE.STOCK_PERK_REFUNDED,
+                  ].includes(activity.eventType),
               )
               .map((activity) => ({
                 id: activity.id,

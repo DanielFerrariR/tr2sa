@@ -43,6 +43,12 @@ You need to manually update your current cash balance in Snowball Analytics.
 
 3 - npm start
 
+## Problem with legacy transactions
+
+From november 2025 and beyond, TR decided to remove eventType from all transactions, so it's difficult to know which one is which and it's even worse to differenciate legacy transactions from new ones which has a different format.
+
+If you get some undefined values in the CSV, maybe is worth to update the legacy date cutoff in `src/utils/identifyEventType.ts` (line 10) to a different value closer to the dates you are getting undefined values.
+
 ## Tip
 
 If you liked this project and want me to keep it updated. Consider to tip any amount to:

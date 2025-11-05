@@ -75,6 +75,8 @@ export const convertTransactionsToSnowballCsv = async (
   for (const item of data) {
     if (item.status === 'CANCELED') continue;
 
+    if (!item.eventType) continue;
+
     let event = '';
     let date = '';
     let symbol = '';
@@ -294,7 +296,13 @@ export const convertTransactionsToSnowballCsv = async (
         item.eventType,
       ) &&
       item.subtitle !== null &&
-      ['Saving executed', 'Sell Order', 'Buy Order'].includes(item.subtitle)
+      [
+        'Saving executed',
+        'Sell Order',
+        'Buy Order',
+        'Limit Buy',
+        'Limit Sell',
+      ].includes(item.subtitle)
     ) {
       event = item.amount.value < 0 ? 'Buy' : 'Sell';
       date = item.timestamp.slice(0, 10);
@@ -335,8 +343,7 @@ export const convertTransactionsToSnowballCsv = async (
       [TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS].includes(
         item.eventType,
       ) &&
-      item.title === 'Interest' &&
-      item.subtitle === null
+      item.title === 'Interest'
     ) {
       event = 'Cash_Gain';
       date = item.timestamp.slice(0, 10);
