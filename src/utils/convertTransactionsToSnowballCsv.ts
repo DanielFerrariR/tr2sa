@@ -244,14 +244,14 @@ export const convertTransactionsToSnowballCsv = async (
           price = sharePriceSubSection?.detail?.text?.slice(1) ?? '';
           currency =
             SIGN_TO_CURRENCY_MAP[sharePriceSubSection?.detail?.text?.[0]!];
+
+          const feeText = feeSubSection?.detail?.text;
           feeTax =
-            feeSubSection?.detail?.text === 'Free'
-              ? ''
-              : (feeSubSection?.detail?.text?.slice(1) ?? '');
+            feeText === 'Free' || !feeText ? '' : (feeText?.slice(1) ?? '');
           feeCurrency =
-            feeSubSection?.detail?.text === 'Free'
+            feeText === 'Free' || !feeText || !feeTax
               ? ''
-              : SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
+              : (SIGN_TO_CURRENCY_MAP[feeText?.[0]!] ?? '');
         }
 
         // Check for "Overview" section with Transaction subsection (older format)
@@ -280,14 +280,13 @@ export const convertTransactionsToSnowballCsv = async (
           }
 
           if (feeSubSection && !feeTax) {
+            const feeText = feeSubSection?.detail?.text;
             feeTax =
-              feeSubSection?.detail?.text === 'Free'
-                ? ''
-                : (feeSubSection?.detail?.text?.slice(1) ?? '');
+              feeText === 'Free' || !feeText ? '' : (feeText?.slice(1) ?? '');
             feeCurrency =
-              feeSubSection?.detail?.text === 'Free'
+              feeText === 'Free' || !feeText || !feeTax
                 ? ''
-                : SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
+                : (SIGN_TO_CURRENCY_MAP[feeText?.[0]!] ?? '');
           }
         }
       });
@@ -300,6 +299,7 @@ export const convertTransactionsToSnowballCsv = async (
       symbol = item.amount.currency;
       note = item.title;
       price = '1';
+      currency = item.amount.currency;
 
       item.sections?.forEach((section) => {
         if ('title' in section && section.title === 'Transaction') {
@@ -310,11 +310,25 @@ export const convertTransactionsToSnowballCsv = async (
           const taxSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Tax',
           );
-          quantity = accruedSubSection?.detail?.text?.slice(1) ?? '';
-          currency =
-            SIGN_TO_CURRENCY_MAP[accruedSubSection?.detail?.text?.[0]!];
-          feeTax = taxSubSection?.detail?.text?.slice(1) ?? '';
-          feeCurrency = SIGN_TO_CURRENCY_MAP[taxSubSection?.detail?.text?.[0]!];
+
+          // Use displayValue for proper format, fallback to text
+          const accruedValue =
+            accruedSubSection?.detail?.displayValue?.text ??
+            accruedSubSection?.detail?.text;
+          const taxValue =
+            taxSubSection?.detail?.displayValue?.text ??
+            taxSubSection?.detail?.text;
+
+          quantity = accruedValue?.slice(1) ?? '';
+          feeTax = taxValue?.slice(1) ?? '';
+
+          // Only set feeCurrency if there's actually a tax
+          if (feeTax && feeTax !== '0.00') {
+            feeCurrency =
+              SIGN_TO_CURRENCY_MAP[taxValue?.[0]!] ?? item.amount.currency;
+          } else {
+            feeCurrency = '';
+          }
         }
       });
     }
