@@ -28,7 +28,7 @@ export async function login(): Promise<boolean> {
     processId = response.data.processId;
     console.log(`Initial login successful. Process ID: ${processId}`);
     console.log(
-      `Countdown for SMS PIN: ${response.data.countdownInSeconds} seconds`,
+      `Countdown for Push-Notification PIN: ${response.data.countdownInSeconds} seconds`,
     );
     console.log(`2FA Method: ${response.data['2fa']}`);
   } catch (error) {
@@ -41,26 +41,35 @@ export async function login(): Promise<boolean> {
     return false;
   }
 
-  const smsPin = readlineSync.question(
-    'Please enter the 4-digit PIN you received via SMS: ',
+  const pushNotificationPin = readlineSync.question(
+    'Please enter the 4-digit PIN you received via Push-Notification: ',
   );
 
   try {
-    console.log(`Verifying SMS PIN for process ID: ${processId}...`);
-    await TradeRepublicAPI.getInstance().verifySmsPin({ processId, smsPin });
-    console.log('SMS PIN verification successful.');
-    console.error('Login sucessful.');
+    console.log(
+      `Verifying Push-Notification PIN for process ID: ${processId}...`,
+    );
+    await TradeRepublicAPI.getInstance().verifyPushNotificationPin({
+      processId,
+      pushNotificationPin,
+    });
+    console.log('Push-Notification PIN verification successful.');
+    console.error('Login successful.');
     return true;
   } catch (error) {
     if (TradeRepublicAPI.isApiError(error)) {
-      console.error(`Error during SMS PIN verification: ${error.message}`);
+      console.error(
+        `Error during Push-Notification PIN verification: ${error.message}`,
+      );
       console.error('Response data:', error.response?.data);
-      console.error('Ensure the SMS PIN is correct and entered promptly.');
+      console.error(
+        'Ensure the Push-Notification PIN is correct and entered promptly.',
+      );
       console.error('Login failed. Exiting.');
       return false;
     }
     console.error(
-      'An unexpected error occurred during SMS PIN verification:',
+      'An unexpected error occurred during Push-Notification PIN verification:',
       error,
     );
     console.error('Login failed. Exiting.');

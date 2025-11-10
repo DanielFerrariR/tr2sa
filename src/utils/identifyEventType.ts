@@ -4,28 +4,16 @@ import { Activity, Transaction } from '../types';
 export const identifyTransactionEventType = (
   transaction: Transaction,
 ): TRANSACTION_EVENT_TYPE | null => {
-  // Legacy transactions (the date can be adjusted as needed)
-  if (
-    new Date(transaction.timestamp).getTime() < new Date('2025-02-04').getTime()
-  ) {
-    return TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS;
-  }
-
   // Dividends
   if (transaction.subtitle === 'Cash dividend') {
     return TRANSACTION_EVENT_TYPE.SSP_CORPORATE_ACTION_INVOICE_CASH;
   }
 
-  // Buy and Sell orders
+  // Buy, Sell, Limit Buy, Limit Sell Orders
   if (
     transaction.subtitle === 'Buy Order' ||
-    transaction.subtitle === 'Limit Buy'
-  ) {
-    return TRANSACTION_EVENT_TYPE.TRADING_TRADE_EXECUTED;
-  }
-
-  if (
     transaction.subtitle === 'Sell Order' ||
+    transaction.subtitle === 'Limit Buy' ||
     transaction.subtitle === 'Limit Sell'
   ) {
     return TRANSACTION_EVENT_TYPE.TRADING_TRADE_EXECUTED;

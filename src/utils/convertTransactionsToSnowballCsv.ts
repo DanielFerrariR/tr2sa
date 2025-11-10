@@ -227,23 +227,23 @@ export const convertTransactionsToSnowballCsv = async (
       note = item.title;
 
       item.sections?.forEach((section) => {
-        if ('title' in section && section.title === 'Overview') {
+        // Check for "Transaction" section (newer format)
+        if ('title' in section && section.title === 'Transaction') {
           const tableSection = section as TransactionTableSection;
-          const transactionSubSection = tableSection.data.find(
-            (subSection) => subSection.title === 'Transaction',
+          const sharesSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Shares',
+          );
+          const sharePriceSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Share price',
           );
           const feeSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Fee',
           );
-          price =
-            transactionSubSection?.detail?.displayValue?.text?.slice(1) ?? '';
-          quantity =
-            transactionSubSection?.detail?.displayValue?.prefix?.slice(0, -3) ??
-            '';
+
+          quantity = sharesSubSection?.detail?.text ?? '';
+          price = sharePriceSubSection?.detail?.text?.slice(1) ?? '';
           currency =
-            SIGN_TO_CURRENCY_MAP[
-              transactionSubSection?.detail?.displayValue?.text?.[0]!
-            ];
+            SIGN_TO_CURRENCY_MAP[sharePriceSubSection?.detail?.text?.[0]!];
           feeTax =
             feeSubSection?.detail?.text === 'Free'
               ? ''
@@ -252,6 +252,43 @@ export const convertTransactionsToSnowballCsv = async (
             feeSubSection?.detail?.text === 'Free'
               ? ''
               : SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
+        }
+
+        // Check for "Overview" section with Transaction subsection (older format)
+        if ('title' in section && section.title === 'Overview') {
+          const tableSection = section as TransactionTableSection;
+          const transactionSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Transaction',
+          );
+          const feeSubSection = tableSection.data.find(
+            (subSection) => subSection.title === 'Fee',
+          );
+
+          // Only use this if we haven't already found data in Transaction section
+          if (transactionSubSection && !price) {
+            price =
+              transactionSubSection?.detail?.displayValue?.text?.slice(1) ?? '';
+            quantity =
+              transactionSubSection?.detail?.displayValue?.prefix?.slice(
+                0,
+                -3,
+              ) ?? '';
+            currency =
+              SIGN_TO_CURRENCY_MAP[
+                transactionSubSection?.detail?.displayValue?.text?.[0]!
+              ];
+          }
+
+          if (feeSubSection && !feeTax) {
+            feeTax =
+              feeSubSection?.detail?.text === 'Free'
+                ? ''
+                : (feeSubSection?.detail?.text?.slice(1) ?? '');
+            feeCurrency =
+              feeSubSection?.detail?.text === 'Free'
+                ? ''
+                : SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
+          }
         }
       });
     }
@@ -297,70 +334,6 @@ export const convertTransactionsToSnowballCsv = async (
       currency = item.amount.currency;
     }
 
-    // Legacy transactions (trades, savings plans)
-    if (
-      [TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS].includes(
-        item.eventType,
-      ) &&
-      item.subtitle !== null &&
-      [
-        'Saving executed',
-        'Sell Order',
-        'Buy Order',
-        'Limit Buy',
-        'Limit Sell',
-      ].includes(item.subtitle)
-    ) {
-      event = item.amount.value < 0 ? 'Buy' : 'Sell';
-      date = item.timestamp.slice(0, 10);
-      symbol = item.icon.split('/')[1];
-      exchange = await getExchangeFromSymbol(symbol);
-      note = item.title;
-
-      item.sections?.forEach((section) => {
-        if ('title' in section && section.title === 'Transaction') {
-          const tableSection = section as TransactionTableSection;
-          const sharesSubsection = tableSection.data.find(
-            (subSection) => subSection.title === 'Shares',
-          );
-          const sharesPriceSubsection = tableSection.data.find(
-            (subSection) => subSection.title === 'Share price',
-          );
-          const feeSubSection = tableSection.data.find(
-            (subSection) => subSection.title === 'Fee',
-          );
-          price = sharesPriceSubsection?.detail?.text?.slice(1) ?? '';
-          quantity = sharesSubsection?.detail?.text ?? '';
-          currency =
-            SIGN_TO_CURRENCY_MAP[sharesPriceSubsection?.detail?.text?.[0]!];
-          feeTax =
-            feeSubSection?.detail?.text === 'Free'
-              ? ''
-              : (feeSubSection?.detail?.text?.slice(1) ?? '');
-          feeCurrency =
-            feeSubSection?.detail?.text === 'Free'
-              ? ''
-              : SIGN_TO_CURRENCY_MAP[feeSubSection?.detail?.text?.[0]!];
-        }
-      });
-    }
-
-    // Legacy transactions (Interest)
-    if (
-      [TRANSACTION_EVENT_TYPE.TIMELINE_LEGACY_MIGRATED_EVENTS].includes(
-        item.eventType,
-      ) &&
-      item.title === 'Interest'
-    ) {
-      event = 'Cash_Gain';
-      date = item.timestamp.slice(0, 10);
-      symbol = item.amount.currency;
-      price = '1';
-      quantity = item.amount.value.toString();
-      currency = item.amount.currency;
-      note = item.title;
-    }
-
     const row = [
       event,
       date,
@@ -377,7 +350,30 @@ export const convertTransactionsToSnowballCsv = async (
 
     if (row.every((field) => !field)) continue;
 
-    csvRows.push(row.map((field) => `"${field}"`).join(','));
+    // Log transactions with undefined values
+    const hasUndefined = row.some((field) => field === undefined);
+    if (hasUndefined) {
+      console.warn(
+        `Transaction with undefined values detected:`,
+        `\n  ID: ${item.id}`,
+        `\n  Title: ${item.title}`,
+        `\n  EventType: ${item.eventType}`,
+        `\n  Row data: ${JSON.stringify({
+          event,
+          date,
+          symbol,
+          price,
+          quantity,
+          currency,
+          feeTax,
+          exchange,
+          feeCurrency,
+          note,
+        })}`,
+      );
+    }
+
+    csvRows.push(row.map((field) => `"${field ?? ''}"`).join(','));
   }
 
   const csvString = csvRows.join('\n');

@@ -10,7 +10,7 @@ export interface LoginPayload {
 
 export interface VerifySmsPinPayload {
   processId: string;
-  smsPin: string;
+  pushNotificationPin: string;
 }
 
 export interface Subscription {

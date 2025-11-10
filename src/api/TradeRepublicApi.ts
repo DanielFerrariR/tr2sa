@@ -54,8 +54,13 @@ export class TradeRepublicAPI {
     });
   }
 
-  public async verifySmsPin({ processId, smsPin }: VerifySmsPinPayload) {
-    await this._client.post(`/api/v1/auth/web/login/${processId}/${smsPin}`);
+  public async verifyPushNotificationPin({
+    processId,
+    pushNotificationPin,
+  }: VerifySmsPinPayload) {
+    await this._client.post(
+      `/api/v1/auth/web/login/${processId}/${pushNotificationPin}`,
+    );
     // Get the session token from cookies after login
     const cookies: Cookie[] = await this._cookieJar.getCookies(
       TRADE_REPUBLIC_API_URL,

@@ -106,10 +106,13 @@ export const getTransactions = async (): Promise<Transaction[]> =>
               return;
             }
 
-            transactions = transactions.map((transaction) => ({
-              ...transaction,
-              eventType: identifyTransactionEventType(transaction) ?? undefined,
-            }));
+            transactions = transactions
+              .map((transaction) => ({
+                ...transaction,
+                eventType:
+                  identifyTransactionEventType(transaction) ?? undefined,
+              }))
+              .filter((transaction) => !!transaction.eventType);
 
             // Adding fake received gift transactions from activities as transactions list doesn't include received gifts
             const giftTransactions: Transaction[] = activities
