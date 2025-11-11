@@ -1,5 +1,9 @@
 import readlineSync from 'readline-sync';
 import { TradeRepublicAPI } from '../api';
+import {
+  TradeRepublicApiLoginError,
+  TradeRepublicApiPinVerificationError,
+} from '../types';
 
 export async function login(): Promise<boolean> {
   console.log('Starting Trade Republic login process...');
@@ -31,13 +35,17 @@ export async function login(): Promise<boolean> {
       `Countdown for Push-Notification PIN: ${response.data.countdownInSeconds} seconds`,
     );
     console.log(`2FA Method: ${response.data['2fa']}`);
-  } catch (error) {
-    if (TradeRepublicAPI.isApiError(error)) {
+  } catch (error: unknown) {
+    if (error instanceof TradeRepublicApiLoginError) {
       console.error(`Error during initial login: ${error.message}`);
-      console.error('Response data:', error.response?.data);
-      return false;
+      console.error('Response data:', error.responseData);
+    } else if (error instanceof Error) {
+      console.error(
+        `An unexpected error occurred during initial login: ${error.message}`,
+      );
+    } else {
+      console.error('An unexpected error occurred during initial login:', error);
     }
-    console.error('An unexpected error occurred during initial login:', error);
     return false;
   }
 
@@ -56,22 +64,25 @@ export async function login(): Promise<boolean> {
     console.log('Push-Notification PIN verification successful.');
     console.error('Login successful.');
     return true;
-  } catch (error) {
-    if (TradeRepublicAPI.isApiError(error)) {
+  } catch (error: unknown) {
+    if (error instanceof TradeRepublicApiPinVerificationError) {
       console.error(
         `Error during Push-Notification PIN verification: ${error.message}`,
       );
-      console.error('Response data:', error.response?.data);
+      console.error('Response data:', error.responseData);
       console.error(
         'Ensure the Push-Notification PIN is correct and entered promptly.',
       );
-      console.error('Login failed. Exiting.');
-      return false;
+    } else if (error instanceof Error) {
+      console.error(
+        `An unexpected error occurred during Push-Notification PIN verification: ${error.message}`,
+      );
+    } else {
+      console.error(
+        'An unexpected error occurred during Push-Notification PIN verification:',
+        error,
+      );
     }
-    console.error(
-      'An unexpected error occurred during Push-Notification PIN verification:',
-      error,
-    );
     console.error('Login failed. Exiting.');
     return false;
   }
