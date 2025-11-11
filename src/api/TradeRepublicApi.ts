@@ -6,6 +6,8 @@ import {
   LoginPayload,
   SubscriptionMessagePayloadMap,
   Subscription,
+  TradeRepublicApiLoginError,
+  TradeRepublicApiPinVerificationError,
   VerifySmsPinPayload,
 } from '../types';
 import {
@@ -43,31 +45,49 @@ export class TradeRepublicAPI {
     return TradeRepublicAPI.instance;
   }
 
-  public static isApiError(error: unknown) {
-    return axios.isAxiosError(error);
-  }
+  public async login({ phoneNumber, pin }: LoginPayload) {
+    try {
+      return await this._client.post('/api/v1/auth/web/login', {
+        phoneNumber,
+        pin,
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new TradeRepublicApiLoginError(
+          error.message,
+          error.response?.data,
+        );
+      }
 
-  public login({ phoneNumber, pin }: LoginPayload) {
-    return this._client.post('/api/v1/auth/web/login', {
-      phoneNumber,
-      pin,
-    });
+      throw error;
+    }
   }
 
   public async verifyPushNotificationPin({
     processId,
     pushNotificationPin,
   }: VerifySmsPinPayload) {
-    await this._client.post(
-      `/api/v1/auth/web/login/${processId}/${pushNotificationPin}`,
-    );
-    // Get the session token from cookies after login
-    const cookies: Cookie[] = await this._cookieJar.getCookies(
-      TRADE_REPUBLIC_API_URL,
-    );
-    this._sessionToken = cookies.find(
-      (cookie) => cookie.key === 'tr_session',
-    )?.value;
+    try {
+      await this._client.post(
+        `/api/v1/auth/web/login/${processId}/${pushNotificationPin}`,
+      );
+      // Get the session token from cookies after login
+      const cookies: Cookie[] = await this._cookieJar.getCookies(
+        TRADE_REPUBLIC_API_URL,
+      );
+      this._sessionToken = cookies.find(
+        (cookie) => cookie.key === 'tr_session',
+      )?.value;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new TradeRepublicApiPinVerificationError(
+          error.message,
+          error.response?.data,
+        );
+      }
+
+      throw error;
+    }
   }
 
   public sendSubscriptionMessage<SubscriptionType extends SUBSCRIPTION_TYPES>(
