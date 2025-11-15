@@ -10,8 +10,6 @@ import {
 const MENU_OPTIONS = {
   DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:
     'downloadJSONAndConvertToSnowballCsv',
-  IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV:
-    'importAndConvertToSnowballCsv',
   INTERACTIVE_SOCKET_CONNECTION: 'interactiveSocketConnection',
 };
 
@@ -26,10 +24,6 @@ const MENU_OPTIONS = {
           name: 'Download JSON and convert it to Snowball CSV',
           value:
             MENU_OPTIONS.DOWNLOAD_JSON_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV,
-        },
-        {
-          name: 'Import existing JSON and convert it to Snowball CSV',
-          value: MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV,
         },
         {
           name: 'Connect to WebSocket (interact via prompt)',
@@ -48,27 +42,6 @@ const MENU_OPTIONS = {
     const transactions = await getTransactions();
     await convertTransactionsToSnowballCsv(transactions);
     console.log('Conversion to Snowball CSV completed.');
-  }
-
-  if (action === MENU_OPTIONS.IMPORT_AND_CONVERT_TRANSACTIONS_TO_SNOWBALL_CSV) {
-    try {
-      const jsonFilePath = 'build/transactions_with_details.json';
-      if (!fs.existsSync(jsonFilePath)) {
-        console.error(`Error: ${jsonFilePath} not found.`);
-        console.error(
-          'Please ensure you have previously saved your transaction with details data to this file, perhaps from a prior socket interaction.',
-        );
-        return;
-      }
-      console.log(`Reading transactions with details from ${jsonFilePath}...`);
-      const transactionsJson = JSON.parse(
-        fs.readFileSync(jsonFilePath, 'utf8'),
-      );
-      await convertTransactionsToSnowballCsv(transactionsJson);
-      console.log('Conversion to Snowball CSV completed.');
-    } catch (error) {
-      console.error('Error converting to Snowball CSV:', error);
-    }
   }
 
   if (action === MENU_OPTIONS.INTERACTIVE_SOCKET_CONNECTION) {

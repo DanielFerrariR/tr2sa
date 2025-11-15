@@ -6,10 +6,11 @@ import {
   TransactionTableSection,
   Transaction,
   TransactionHeaderSection,
+  TransactionDocumentsSection,
 } from '../types';
-import { calculateStringNumbers } from './calculateStringNumbers';
 import { saveFile } from './saveFile';
 import { identifyBuyOrSell } from './identifyBuyOrSell';
+import { parseTransactionDividendPdf } from './parseTransactionDividendPdf';
 
 const OUTPUT_DIRECTORY = 'build';
 const FILE_NAME = 'snowball_transactions.csv';
@@ -117,45 +118,23 @@ export const convertTransactionsToSnowballCsv = async (
       exchange = await getExchangeFromSymbol(symbol);
       note = item.title;
 
-      item.sections?.forEach((section) => {
-        if ('title' in section && section.title === 'Transaction') {
-          const tableSection = section as TransactionTableSection;
-          const sharesSubSection = tableSection.data.find(
-            (subSection) => subSection.title === 'Shares',
+      for (const section of item.sections ?? []) {
+        if ('title' in section && section.title === 'Documents') {
+          const documentSection = section as TransactionDocumentsSection;
+          const documentUrl = documentSection.data[0]?.action?.payload;
+          const response = await axios.get(documentUrl, {
+            responseType: 'arraybuffer',
+          });
+          const parsedPdf = await parseTransactionDividendPdf(
+            Buffer.from(response.data),
           );
-          const taxSubSection = tableSection.data.find(
-            (subSection) => subSection.title === 'Tax',
-          );
-          const totalSubSection = tableSection.data.find(
-            (subSection) => subSection.title === 'Total',
-          );
-          feeTax =
-            (taxSubSection?.detail?.displayValue?.text[0] === '-'
-              ? taxSubSection?.detail?.displayValue?.text?.slice(2)
-              : taxSubSection?.detail?.displayValue?.text?.slice(1)) ?? '';
-          feeCurrency =
-            SIGN_TO_CURRENCY_MAP[
-              taxSubSection?.detail?.displayValue?.text[0] === '-'
-                ? taxSubSection?.detail?.displayValue?.text?.[1]!
-                : taxSubSection?.detail?.displayValue?.text?.[0]!
-            ];
-          // The total doesn't include tax, so we need to add it
-          quantity = calculateStringNumbers('add', [
-            totalSubSection?.detail?.displayValue?.text?.slice(1),
-            feeTax,
-          ]);
-          currency =
-            SIGN_TO_CURRENCY_MAP[
-              totalSubSection?.detail?.displayValue?.text?.[0]!
-            ];
-          // As the pricePerShare can be in another currency,
-          // we need to calculate it with the total / shares
-          price = calculateStringNumbers('divide', [
-            quantity,
-            sharesSubSection?.detail?.displayValue?.text,
-          ]);
+          quantity = parsedPdf.total;
+          price = parsedPdf.dividendPerShare;
+          currency = parsedPdf.currency;
+          feeTax = parsedPdf.taxAmount;
+          feeCurrency = parsedPdf.taxCurrency;
         }
-      });
+      }
     }
 
     // Received Stock gifts when opening an account

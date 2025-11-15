@@ -103,7 +103,7 @@ export interface TransactionDocument {
 
 export interface TransactionDocumentsSection {
   title: string;
-  data: Document[];
+  data: TransactionDocument[];
   type: 'documents';
 }
 
