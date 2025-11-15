@@ -26,7 +26,6 @@ You need to manually update your current cash balance in Snowball Analytics.
 ## What is currently supported
 
 - Download JSON and convert it to Snowball CSV
-- Import existing JSON and convert it to Snowball CSV (connection to Trade Republic api isn't needed)
 - Connect to WebSocket (interact via prompt)
   - Known supported commands:
     - Transactions: {"type": "timelineTransactions", after: '...' } // list of transactions with optional 'after' option to get the next list of transactions (after needs the hash from the previous call)
