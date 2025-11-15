@@ -106,10 +106,13 @@ export const getTransactions = async (): Promise<Transaction[]> =>
               return;
             }
 
-            transactions = transactions.map((transaction) => ({
-              ...transaction,
-              eventType: identifyTransactionEventType(transaction) ?? undefined,
-            }));
+            transactions = transactions
+              .map((transaction) => ({
+                ...transaction,
+                eventType:
+                  identifyTransactionEventType(transaction) ?? undefined,
+              }))
+              .filter((transaction) => transaction.eventType !== undefined);
 
             // Adding fake received gift transactions from activities as transactions list doesn't include received gifts
             const giftTransactions: Transaction[] = activities
@@ -261,9 +264,16 @@ export const getTransactions = async (): Promise<Transaction[]> =>
         }
       },
       onClose: (event) => {
-        console.log(
-          `WebSocket connection closed: Code ${event.code}, Reason: ${event.reason}`,
-        );
+        // Code 1000 is normal closure
+        // Code 1001 is "going away"
+        // Codes 1002-1015 are various error conditions
+        const isNormalClosure = event.code === 1000 || event.code === 1001;
+
+        if (!isNormalClosure) {
+          const errorMessage = `WebSocket connection closed unexpectedly: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`;
+          console.error(errorMessage);
+          reject(new Error(errorMessage));
+        }
       },
       onError: (error) => {
         console.error('WebSocket error:', error);

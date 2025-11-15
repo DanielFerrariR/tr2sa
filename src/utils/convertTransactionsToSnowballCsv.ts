@@ -85,6 +85,8 @@ export const convertTransactionsToSnowballCsv = async (
   let csvRows = [];
   csvRows.push(HEADERS.join(','));
 
+  console.log('Converting transactions to Snowball CSV format...');
+
   for (const item of data) {
     if (item.status === 'CANCELED') continue;
 
@@ -261,11 +263,11 @@ export const convertTransactionsToSnowballCsv = async (
 
           const feeText = feeSubSection?.detail?.text;
           feeTax =
-            feeText === 'Free' || !feeText ? '' : feeText?.slice(1) ?? '';
+            feeText === 'Free' || !feeText ? '' : (feeText?.slice(1) ?? '');
           feeCurrency =
             feeText === 'Free' || !feeText || !feeTax
               ? ''
-              : SIGN_TO_CURRENCY_MAP[feeText?.[0]!] ?? '';
+              : (SIGN_TO_CURRENCY_MAP[feeText?.[0]!] ?? '');
         }
 
         // Check for "Overview" section with Transaction subsection (older format)
@@ -299,11 +301,11 @@ export const convertTransactionsToSnowballCsv = async (
           if (feeSubSection && !feeTax) {
             const feeText = feeSubSection?.detail?.text;
             feeTax =
-              feeText === 'Free' || !feeText ? '' : feeText?.slice(1) ?? '';
+              feeText === 'Free' || !feeText ? '' : (feeText?.slice(1) ?? '');
             feeCurrency =
               feeText === 'Free' || !feeText || !feeTax
                 ? ''
-                : SIGN_TO_CURRENCY_MAP[feeText?.[0]!] ?? '';
+                : (SIGN_TO_CURRENCY_MAP[feeText?.[0]!] ?? '');
           }
         }
       });
@@ -337,7 +339,9 @@ export const convertTransactionsToSnowballCsv = async (
             taxSubSection?.detail?.displayValue?.text ??
             taxSubSection?.detail?.text;
 
-          quantity = parseToBigNumber(accruedValue?.replace(/[^0-9.]/g, '') ?? '0').toFixed();
+          quantity = parseToBigNumber(
+            accruedValue?.replace(/[^0-9.]/g, '') ?? '0',
+          ).toFixed();
           feeTax = taxValue?.slice(1) ?? '0';
 
           // Only set feeCurrency if there's actually a tax

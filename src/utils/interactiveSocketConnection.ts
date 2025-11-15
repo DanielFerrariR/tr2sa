@@ -31,11 +31,22 @@ export const interactiveSocketConnection = (): void => {
       readlineInterface.prompt(true);
     },
     onClose: (event) => {
-      console.log(
-        `WebSocket connection closed: Code ${event.code}, Reason: ${event.reason}`,
-      );
-      readlineInterface.close();
-      process.exit(0);
+      // Code 1000 is normal closure
+      // Code 1001 is "going away"
+      // Codes 1002-1015 are various error conditions
+      const isNormalClosure = event.code === 1000 || event.code === 1001;
+
+      if (isNormalClosure) {
+        console.log('WebSocket connection closed.');
+        readlineInterface.close();
+        process.exit(0);
+      } else {
+        console.error(
+          `WebSocket connection closed unexpectedly: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`,
+        );
+        readlineInterface.close();
+        process.exit(1);
+      }
     },
     onError: (error) => {
       console.error('WebSocket error:', error);
