@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { calculateStringNumbers } from './calculateStringNumbers';
 import { saveFile } from './saveFile';
+import { identifyBuyOrSell } from './identifyBuyOrSell';
 
 const OUTPUT_DIRECTORY = 'build';
 const FILE_NAME = 'snowball_transactions.csv';
@@ -232,7 +233,7 @@ export const convertTransactionsToSnowballCsv = async (
         TRANSACTION_EVENT_TYPE.BENEFITS_SAVEBACK_EXECUTION,
       ].includes(item.eventType)
     ) {
-      event = item.amount.value < 0 ? 'Buy' : 'Sell';
+      event = identifyBuyOrSell(item);
       date = item.timestamp.slice(0, 10);
       symbol = item.icon.split('/')[1];
       exchange = await getExchangeFromSymbol(symbol);
