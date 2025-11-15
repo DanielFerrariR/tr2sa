@@ -160,7 +160,7 @@ export const convertTransactionsToSnowballCsv = async (
 
     // Received Stock gifts when opening an account
     if ([TRANSACTION_EVENT_TYPE.STOCK_PERK_REFUNDED].includes(item.eventType)) {
-      event = 'Stock_As_Dividend';
+      event = 'Buy'; // Trade Republic uses "Buy" for received stocks
       date = item.timestamp.slice(0, 10);
       note = item.title;
 
@@ -174,15 +174,17 @@ export const convertTransactionsToSnowballCsv = async (
           const sharesSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Shares',
           );
-          const sharesPriceSubSection = tableSection.data.find(
+          const sharePriceSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Share price',
           );
-          price = '0';
           quantity = parseToBigNumber(
             sharesSubSection?.detail?.text ?? '0',
           ).toFixed();
+          price = parseToBigNumber(
+            sharePriceSubSection?.detail?.text?.slice(1) ?? '0',
+          ).toFixed();
           currency =
-            SIGN_TO_CURRENCY_MAP[sharesPriceSubSection?.detail?.text?.[0]!];
+            SIGN_TO_CURRENCY_MAP[sharePriceSubSection?.detail?.text?.[0]!];
         }
       });
 
@@ -195,7 +197,7 @@ export const convertTransactionsToSnowballCsv = async (
         item.eventType,
       )
     ) {
-      event = 'Stock_As_Dividend';
+      event = 'Buy'; // Trade Republic uses "Buy" for received stocks
       date = item.timestamp.slice(0, 10);
       note = item.title;
 
@@ -209,15 +211,17 @@ export const convertTransactionsToSnowballCsv = async (
           const sharesSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Shares',
           );
-          const sharesPriceSubSection = tableSection.data.find(
+          const sharePriceSubSection = tableSection.data.find(
             (subSection) => subSection.title === 'Share price',
           );
-          price = '0';
           quantity = parseToBigNumber(
             sharesSubSection?.detail?.text ?? '0',
           ).toFixed();
+          price = parseToBigNumber(
+            sharePriceSubSection?.detail?.text?.slice(1) ?? '0',
+          ).toFixed();
           currency =
-            SIGN_TO_CURRENCY_MAP[sharesPriceSubSection?.detail?.text?.[0]!];
+            SIGN_TO_CURRENCY_MAP[sharePriceSubSection?.detail?.text?.[0]!];
         }
       });
 
