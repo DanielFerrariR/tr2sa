@@ -9,28 +9,45 @@ export const interactiveSocketConnection = (): void => {
     prompt: 'Enter message to send: ',
   });
 
+  let keepAliveInterval: NodeJS.Timeout | undefined;
+
   TradeRepublicAPI.getInstance().connect({
     onOpen: () => {
       console.log('WebSocket connection opened.');
     },
     onConnected: () => {
       console.log('\n--- WebSocket Ready ---');
-      console.log(
-        'You can now type messages to send. The number at the beginning of the message is the subscription ID and needs to be unique for each subscription.',
-      );
-      console.log(`Example: sub 1 {"type":"cash"}`);
+      console.log('You can now type messages to send.');
+      console.log(`Example: {"type":"cash"}`);
       console.log('Type "exit" to close the connection.');
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
       readlineInterface.prompt(true);
+
+      // Start keep-alive mechanism - send a message every 25 seconds
+      keepAliveInterval = setInterval(() => {
+        if (
+          TradeRepublicAPI.getInstance().getConnectionStatus() ===
+          CONNECTION_STATUS.OPEN
+        ) {
+          TradeRepublicAPI.getInstance().sendMessage('echo');
+        }
+      }, 25000);
     },
     onMessage: (message) => {
+      // Ignore echo messages
+      if (message === 'echo') return;
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
       console.log('Received WebSocket message:', message);
       readlineInterface.prompt(true);
     },
     onClose: (event) => {
+      // Clear keep-alive interval
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+      }
+
       // Code 1000 is normal closure
       // Code 1001 is "going away"
       // Codes 1002-1015 are various error conditions
@@ -49,6 +66,11 @@ export const interactiveSocketConnection = (): void => {
       }
     },
     onError: (error) => {
+      // Clear keep-alive interval
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+      }
+
       console.error('WebSocket error:', error);
       readlineInterface.close();
       process.exit(1);
@@ -71,6 +93,9 @@ export const interactiveSocketConnection = (): void => {
       // Handle special case for 'exit' command
       if (messageToSend.toLowerCase() === 'exit') {
         console.log('Closing WebSocket connection...');
+        if (keepAliveInterval) {
+          clearInterval(keepAliveInterval);
+        }
         TradeRepublicAPI.getInstance().disconnect();
         return;
       }
@@ -81,6 +106,9 @@ export const interactiveSocketConnection = (): void => {
     })
     .on('close', () => {
       console.log('Readline interface closed.');
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+      }
       if (
         TradeRepublicAPI.getInstance().getConnectionStatus() ===
         CONNECTION_STATUS.OPEN

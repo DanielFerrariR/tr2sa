@@ -28,10 +28,10 @@ You need to manually update your current cash balance in Snowball Analytics.
 - Download JSON and convert it to Snowball CSV
 - Import existing JSON and convert it to Snowball CSV (connection to Trade Republic api isn't needed)
 - Connect to WebSocket (interact via prompt)
-  - Known supported commands (token is already added to the messages):
-    - Transactions: {"type": "timelineTransactions"} // list of transactions with optional 'after' option to get the next list of transactions (after needs the hash from the previous call)
+  - Known supported commands:
+    - Transactions: {"type": "timelineTransactions", after: '...' } // list of transactions with optional 'after' option to get the next list of transactions (after needs the hash from the previous call)
     - Transaction Details: {"type": "timelineDetailV2", "id": timeline_id } // extra details of a transactions with required timeline_id that is id of a transaction
-    - Activity Log: {"type": "timelineActivityLog" } // list of activies with optional 'after' option to get the next list of activities (after needs the hash from the previous call)
+    - Activity Log: {"type": "timelineActivityLog", after: '...' } // list of activies with optional 'after' option to get the next list of activities (after needs the hash from the previous call)
     - Cash: {"type": "cash" } // Cash balance
     - Can get more of options from https://github.com/pytr-org/pytr/blob/master/pytr/api.py code, but this project isn't supporting and explaining how to use the others for now
 
@@ -42,12 +42,6 @@ You need to manually update your current cash balance in Snowball Analytics.
 2 - npm install
 
 3 - npm start
-
-## Problem with legacy transactions
-
-From november 2025 and beyond, TR decided to remove eventType from all transactions, so it's difficult to know which one is which and it's even worse to differenciate legacy transactions from new ones which has a different format.
-
-If you get some undefined values in the CSV, maybe is worth to update the legacy date cutoff in `src/utils/identifyEventType.ts` (line 10) to a different value closer to the dates you are getting undefined values.
 
 ## Tip
 

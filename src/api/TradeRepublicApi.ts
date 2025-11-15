@@ -118,23 +118,33 @@ export class TradeRepublicAPI {
       return;
     }
 
-    // To always include the token if the message has a format like: sub 1 {"type":"availableCash"}
+    // Echo messages are sent as-is
+    if (message === 'echo') {
+      this._webSocket.send(message);
+      return;
+    }
+
+    let parsedMessage = message;
+
+    // To always include the token if the message has a format like: {"type":"availableCash"}
     try {
-      const [command, subscriptionId] = message.split(' ', 2);
-      let jsonMatch = message.match(/\{.*\}/s);
+      let jsonMatch = parsedMessage.match(/\{.*\}/s);
       if (!jsonMatch) throw new Error('No JSON payload found in message');
       const jsonPayload = JSON.parse(jsonMatch![0]);
       jsonPayload.token = this._sessionToken;
-      message = `${command} ${subscriptionId} ${JSON.stringify(jsonPayload)}`;
+      parsedMessage = `sub ${this._subscriptionId} ${JSON.stringify(jsonPayload)}`;
+      this._subscriptions[this._subscriptionId] = jsonPayload;
+      this._subscriptionId++;
     } catch (error) {
       console.warn(
-        "Could not parse subscription message for token injection. Ensure it's valid JSON.",
+        "Could not parse subscription message for token injection. Ensure it's valid JSON. Message not sent.",
         error,
       );
+      return;
     }
 
     console.log('Sending message:', message);
-    this._webSocket?.send(message);
+    this._webSocket?.send(parsedMessage);
   }
 
   public connect({
